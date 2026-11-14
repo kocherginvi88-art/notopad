@@ -56,6 +56,19 @@ select{max-width:43%;color:var(--text)}
 @media(max-width:780px){.app{padding-top:16px}.layout{grid-template-columns:minmax(0,1fr);gap:15px}header{margin-bottom:14px}nav{display:flex;gap:3px;padding:4px}.nav-title,.level small{display:none}.level{justify-content:center;gap:5px;padding:6px 3px;margin:0}.level b{width:21px;height:21px}.level span{font-size:11px}.level{flex:1}}
 @media(max-width:500px){.metrics{gap:9px;font-size:10px}.stage-head{padding:7px}.stage-head .control{padding:7px 6px;font-size:11px}.primary{min-width:62px}.level span{font-size:0}.level span::after{content:attr(data-short);font-size:9px}.level{flex-direction:column}.brand-mark{width:35px;height:35px}.brand{gap:7px}h1{font-size:21px}header p{font-size:10px}.tools{gap:5px}.tools .control{padding:6px;font-size:10px}.key.sharp kbd{font-size:8px}}
 @media(orientation:landscape) and (max-height:550px){.app{padding-top:7px}.field{height:135px}.keys{height:115px}header{margin-bottom:7px}.intro{margin-bottom:6px}.intro p{font-size:11px}}
+[hidden]{display:none!important}
+.mode-controls,.teacher-controls{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.mode-controls{margin-bottom:10px}.teacher-controls select{max-width:none}
+.mode-controls [aria-pressed=true]{background:#332c4a;border-color:#8274aa}
+.lesson-mode .key kbd{display:none}
+.lesson-mode .note{font-size:clamp(10px,1.75vw,20px)}
+.lesson-mode .key.active-note{background:#a3efcc;border-bottom-color:#68b698;color:#112b24}
+.lesson-mode .target-label{font-size:11px}
+.lesson-mode .field{height:clamp(180px,42vh,470px)}
+.main:fullscreen{background:var(--bg);overflow:auto;padding:12px min(3vw,36px)}
+.main:fullscreen .field{height:max(130px,calc(100dvh - clamp(115px,28vh,270px) - 185px))}
+.main:fullscreen .keys{height:clamp(115px,28vh,270px)}
+@media(orientation:landscape) and (max-height:550px){.lesson-mode .field{height:130px}}
 </style>
 </head>
 <body>
@@ -78,6 +91,18 @@ select{max-width:43%;color:var(--text)}
   <button class="level" type="button" data-level="4" aria-pressed="false"><b>5</b><span data-short="Цепочка">Цепочка аккордов<small>Четыре аккорда подряд</small></span></button>
 </nav>
 <main class="main">
+  <div class="mode-controls" aria-label="Режим тренажёра">
+    <button class="control" id="lesson-mode" type="button" aria-pressed="true">Урок</button>
+    <button class="control" id="practice-mode" type="button" aria-pressed="false">Самостоятельно</button>
+    <div class="teacher-controls" id="teacher">
+      <select class="control" id="speed" aria-label="Скорость упражнения">
+        <option value="0.65">Темп 65%</option><option value="0.8">Темп 80%</option>
+        <option value="1" selected>Темп 100%</option><option value="1.15">Темп 115%</option>
+      </select>
+      <button class="control" id="guide" type="button" aria-pressed="false">Звуковой пример</button>
+      <button class="control" id="fullscreen" type="button">На весь экран</button>
+    </div>
+  </div>
   <div class="intro">
     <div><h2 id="title">Знакомство с нотами</h2><p id="description"></p></div>
     <select class="control" id="melody" aria-label="Выбрать мелодию" hidden>
@@ -86,7 +111,7 @@ select{max-width:43%;color:var(--text)}
   </div>
   <section class="stage" aria-label="Игровое поле">
     <div class="stage-head">
-      <div class="metrics"><span>Темп <strong id="tempo">46 BPM</strong></span><span>Точно <strong id="hits">0</strong></span><span>Ошибки <strong id="errors">0</strong></span></div>
+      <div class="metrics"><span>Темп <strong id="tempo">46 BPM</strong></span><span id="hit-count">Точно <strong id="hits">0</strong></span><span id="error-count">Ошибки <strong id="errors">0</strong></span></div>
       <div class="buttons"><button class="control" type="button" id="restart" aria-label="В начало" title="В начало" hidden>↺</button><button class="control primary" type="button" id="play">Начать</button></div>
     </div>
     <div class="progress" role="progressbar" aria-label="Прогресс упражнения" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="progress"></div></div>
@@ -98,7 +123,7 @@ select{max-width:43%;color:var(--text)}
     </div>
     <div class="keys" id="keys" aria-label="Клавиши первой октавы"></div>
   </section>
-  <div class="under"><p id="feedback" role="status">Нажмите на клавиши, чтобы услышать звук.</p><p>Мышь · Сенсорный экран · Компьютерная клавиатура</p></div>
+  <div class="under"><p id="feedback" role="status">Нажмите на клавиши, чтобы услышать звук.</p><p id="input-help">Мышь · Сенсорный экран · Компьютерная клавиатура</p></div>
 </main>
 </div>
 </div>
@@ -134,6 +159,9 @@ const progressBar = el.progress.parentElement;
 const keyNodes = [];
 const sources = new Map();
 const voices = new Map();
+const main = document.querySelector('main');
+let inLesson = true, guideEnabled = false, guideSound = null, activeGuide = null;
+let speedMultiplier = 1;
 const audioSamples = new Map();
 let audio, midiAccess, level = 0, mode = 'idle', enabledSound = true;
 let events = [], animation = 0, origin = 0, pausedAt = 0, hits = 0, errors = 0, cursor = 0;
@@ -156,6 +184,7 @@ pitches.forEach(([name, letter, column, sharp], index) => {
   keyNodes.push(key);
   key.addEventListener('click', event => {
     warmAudio();
+    if (inLesson && mode === 'playing') return;
     if (pendingAudio) retryAudio();
     else if (event.detail === 0 && ![...sources.values()].includes(index)) soundOn(index,false,true);
   });
@@ -286,21 +315,23 @@ function demo() {
 }
 function reset() {
   cancelAnimationFrame(animation);
-  clearKeys();
   mode = 'idle';
+  clearKeys();
+  stopGuide();
+  setGuideHighlight(null);
   events = [];
   hits = errors = cursor = 0;
   updateScore();
   el.notes.replaceChildren();
   el.title.textContent = lessons[level][0];
   el.description.textContent = lessons[level][1];
-  el.tempo.textContent = lessons[level][2] + ' BPM';
+  el.tempo.textContent = Math.round(lessons[level][2] * speedMultiplier) + ' BPM';
   el.melody.hidden = level !== 2;
   el.phase.hidden = true;
   el.restart.hidden = true;
   el.play.textContent = 'Начать';
-  setOverlay('Сыграйте первую ноту','Нажмите «Начать», затем сыграйте ноту, когда её нижний край дойдёт до линии удара.');
-  setFeedback('Нажмите на клавиши, чтобы услышать звук.');
+  setOverlay(inLesson ? 'Готовы к уроку?' : 'Сыграйте первую ноту','Нажмите «Начать», затем сыграйте ноту, когда её нижний край дойдёт до линии удара.');
+  setFeedback(inLesson ? 'Ученики играют на своих синтезаторах, когда ноты доходят до линии.' : 'Нажмите на клавиши, чтобы услышать звук.');
   demo();
 }
 function start() {
@@ -313,10 +344,37 @@ function start() {
   lastCount = null;
   el.restart.hidden = false;
   el.play.textContent = 'Пауза';
-  setFeedback('Приготовьтесь.');
+  setFeedback(inLesson ? 'Следите за подсветкой клавиш. Длинную ноту держите, пока клавиша подсвечена.' : 'Приготовьтесь.');
   render();
 }
-function clock() { return performance.now() / 1000 - origin; }
+function clock() { return (performance.now() / 1000 - origin) * speedMultiplier; }
+
+function setGuideHighlight(event) {
+  if (activeGuide === event) return;
+  activeGuide = event;
+  keyNodes.forEach((node,index) => node.classList.toggle('active-note',Boolean(event?.pitches.includes(index))));
+}
+function stopGuide() {
+  if (!guideSound) return;
+  guideSound.pitches.forEach(pitch => soundOff(pitch,true));
+  guideSound = null;
+}
+function advanceLesson(now) {
+  const noteEnd = event => event.at + (event.duration || 0.28);
+  const previousCursor = cursor;
+  while (cursor < events.length && now >= noteEnd(events[cursor])) cursor++;
+  if (previousCursor !== cursor) updateScore();
+  const event = events[cursor];
+  const active = event && now >= event.at ? event : null;
+  setGuideHighlight(active);
+  if (guideSound !== active) {
+    stopGuide();
+    if (guideEnabled && active) {
+      guideSound = active;
+      active.pitches.forEach(pitch => soundOn(pitch));
+    }
+  }
+}
 function hitTolerance(event) { return Math.min(0.32, 24 / event.bpm); }
 function expectedEnd(event) { return event.at + event.duration; }
 function holdTolerance(event) { return Math.min(0.26, event.duration * 0.24); }
@@ -346,7 +404,7 @@ function advance(now) {
   }
 }
 function grade(pitch) {
-  if (mode !== 'playing') return;
+  if (inLesson || mode !== 'playing') return;
   const now = clock();
   advance(now);
   const event = events[cursor];
@@ -374,21 +432,22 @@ function render() {
   if (mode !== 'playing') return;
   const now = clock();
   const last = events[events.length - 1];
-  advance(now);
+  if (inLesson) advanceLesson(now);
+  else advance(now);
   if (cursor === events.length && now > Math.max(last.at + 0.5,expectedEnd(last) + 0.15)) {
     mode = 'finished';
     el.notes.replaceChildren();
     el.phase.hidden = true;
     el.play.textContent = 'Повторить';
-    setOverlay('Упражнение завершено', hits + ' из ' + events.length + ' сыграно точно · ошибок: ' + errors);
+    setOverlay('Упражнение завершено', inLesson ? 'Можно повторить или выбрать следующий уровень.' : hits + ' из ' + events.length + ' сыграно точно · ошибок: ' + errors);
     setFeedback('Можно повторить упражнение или выбрать другой уровень.');
     return;
   }
   const current = events[cursor] ?? last;
-  el.tempo.textContent = current.bpm + ' BPM';
+  el.tempo.textContent = Math.round(current.bpm * speedMultiplier) + ' BPM';
   el.phase.textContent = current.phase;
   el.phase.hidden = false;
-  const count = now < 0 ? Math.ceil(-now) : null;
+  const count = now < 0 ? Math.ceil(-now / speedMultiplier) : null;
   if (count !== lastCount) {
     setOverlay(count === null ? '' : String(count),'Приготовьтесь');
     lastCount = count;
@@ -410,7 +469,7 @@ function render() {
     for (const node of event.nodes) {
       node.style.setProperty('--y',top + 'px');
       node.style.setProperty('--length',length + 'px');
-      node.classList.toggle('active',event.state === 'hit' || event.state === 'holding');
+      node.classList.toggle('active',event === activeGuide || event.state === 'hit' || event.state === 'holding');
       node.classList.toggle('missed',event.state === 'missed');
     }
   }
@@ -422,7 +481,7 @@ function togglePause() {
     pausedAt = clock();
     mode = 'paused';
     const event = events[cursor];
-    if (event) {
+    if (event && !inLesson) {
       event.pressed.clear();
       if (event.state === 'holding') {
         event.state = 'waiting';
@@ -431,11 +490,12 @@ function togglePause() {
     }
     cancelAnimationFrame(animation);
     clearKeys();
+    stopGuide();
     el.play.textContent = 'Продолжить';
     setOverlay('Пауза','Нажмите «Продолжить», чтобы вернуться к упражнению.');
   } else {
     warmAudio();
-    origin = performance.now() / 1000 - pausedAt;
+    origin = performance.now() / 1000 - pausedAt / speedMultiplier;
     mode = 'playing';
     lastCount = undefined;
     el.play.textContent = 'Пауза';
@@ -575,7 +635,7 @@ function soundOff(index, immediate = false) {
   }
 }
 function press(pitch, source) {
-  if (sources.has(source)) return;
+  if ((inLesson && mode === 'playing') || sources.has(source)) return;
   const alreadyPressed = [...sources.values()].includes(pitch);
   sources.set(source,pitch);
   if (alreadyPressed) return;
@@ -626,7 +686,6 @@ function refreshMidi() {
   };
 }
 if (navigator.requestMIDIAccess) {
-  el.midi.hidden = false;
   el.midi.addEventListener('click',async () => {
     warmAudio();
     try {
@@ -670,6 +729,45 @@ el['sound-test'].addEventListener('click', () => {
   soundOff(0,true);
   soundOn(0,true,true);
 });
+function setLesson(value) {
+  inLesson = value;
+  speedMultiplier = value ? Number(el.speed.value) : 1;
+  main.classList.toggle('lesson-mode',value);
+  el['lesson-mode'].setAttribute('aria-pressed',value);
+  el['practice-mode'].setAttribute('aria-pressed',!value);
+  el.teacher.hidden = value === false;
+  el['hit-count'].hidden = el['error-count'].hidden = value;
+  el['input-help'].hidden = value;
+  el.midi.hidden = value || !navigator.requestMIDIAccess;
+  reset();
+}
+el['lesson-mode'].addEventListener('click',() => { if (!inLesson) setLesson(true); });
+el['practice-mode'].addEventListener('click',() => { if (inLesson) setLesson(false); });
+el.speed.addEventListener('change',() => {
+  const time = clock();
+  speedMultiplier = Number(el.speed.value);
+  if (mode === 'playing') origin = performance.now() / 1000 - time / speedMultiplier;
+  const event = events[cursor] ?? events.at(-1);
+  el.tempo.textContent = Math.round((event?.bpm ?? lessons[level][2]) * speedMultiplier) + ' BPM';
+});
+el.guide.addEventListener('click',() => {
+  guideEnabled = !guideEnabled;
+  el.guide.setAttribute('aria-pressed',guideEnabled);
+  if (guideEnabled) setSound(true);
+  else stopGuide();
+});
+el.fullscreen.hidden = !main.requestFullscreen;
+el.fullscreen.addEventListener('click',async () => {
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await main.requestFullscreen();
+  } catch {
+    setFeedback('Браузер не смог открыть полноэкранный режим.','error');
+  }
+});
+document.addEventListener('fullscreenchange',() => {
+  el.fullscreen.textContent = document.fullscreenElement ? 'Выйти из полноэкранного режима' : 'На весь экран';
+});
 window.addEventListener('keydown',event => {
   if (event.repeat || event.metaKey || event.ctrlKey || event.altKey || event.target.tagName === 'SELECT') return;
   if (codes[event.code] !== undefined) {
@@ -682,10 +780,10 @@ window.addEventListener('keyup',event => {
   release('focused:' + event.code);
 });
 window.addEventListener('blur',() => {
-  if (mode === 'playing') togglePause();
+  if (mode === 'playing' && !inLesson) togglePause();
   else clearKeys();
 });
-reset();
+setLesson(true);
 </script>
 </body>
 </html>
