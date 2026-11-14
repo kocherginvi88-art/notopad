@@ -1,0 +1,691 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101722">
+<meta name="description" content="Пять уровней игры на фортепиано: ноты, ритм, мелодии и аккорды.">
+<title>Нотопад — тренажёр фортепиано</title>
+<style>
+:root{color-scheme:dark;--bg:#101722;--panel:#182130;--line:#30394b;--text:#f2f3fa;--muted:#aab4ca;--accent:#c8baff;--ink:#181432;--ok:#a3efcc;--error:#ffb3b4;font-family:Inter,system-ui,-apple-system,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;min-width:300px;color:var(--text);background:radial-gradient(ellipse at 62% 0,#21243d 0,transparent 47%),var(--bg)}
+button,select{font:inherit}button{cursor:pointer;color:inherit}button:focus-visible,select:focus-visible{outline:2px solid #f2eaff;outline-offset:4px}
+.app{max-width:1270px;margin:auto;padding:27px clamp(14px,4vw,48px) 18px}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:26px}
+.brand,.tools{display:flex;align-items:center;gap:12px}
+.brand-mark{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;background:var(--accent);color:var(--ink);box-shadow:0 4px 24px #b4a1ff31;font-size:27px;font-weight:750}
+h1,h2,p{margin:0}h1{font-size:25px;line-height:1.07;letter-spacing:-.035em}header p{font-size:12px;color:var(--muted);margin-top:4px}
+.control{border:1px solid var(--line);background:#1c2535;border-radius:9px;padding:9px 12px;font-size:13px;white-space:nowrap}
+.control:hover,.level:hover{border-color:#877aaf}.control[aria-pressed=true]{color:var(--accent)}
+.layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:21px;align-items:start}
+nav{background:#182131;border:1px solid var(--line);border-radius:17px;padding:15px 11px 11px}
+.nav-title{display:block;margin:0 7px 11px;color:var(--muted);font-size:12px;font-weight:650}
+.level{display:flex;width:100%;text-align:left;align-items:center;gap:10px;border:1px solid transparent;background:transparent;border-radius:10px;padding:9px 8px;margin:3px 0}
+.level[aria-pressed=true]{border-color:#8274aa;background:#332c4a}.level b{display:grid;place-items:center;width:27px;height:27px;border-radius:7px;flex:none;background:#2a3447;color:var(--muted);font-size:12px}
+.level[aria-pressed=true] b{background:var(--accent);color:var(--ink)}
+.level span{display:grid;gap:2px;font-size:13px;font-weight:700}.level small{font-size:10px;color:var(--muted);font-weight:450}
+.main{min-width:0}.intro{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin:0 0 13px}
+h2{font-size:clamp(21px,3vw,31px);letter-spacing:-.038em}.intro p{font-size:13px;color:var(--muted);line-height:1.45;margin-top:4px}
+select{max-width:43%;color:var(--text)}
+.stage{border:1px solid #41465e;border-radius:18px;overflow:hidden;background:#141d2b;box-shadow:0 15px 36px #070a1438}
+.stage-head{background:#1e283a;display:flex;align-items:center;justify-content:space-between;padding:10px 13px;gap:10px;border-bottom:1px solid #39435b}
+.metrics{display:flex;gap:clamp(9px,2vw,21px);align-items:center;min-width:0;color:var(--muted);font-size:12px}
+.metrics span{white-space:nowrap}.metrics strong{color:var(--text);font-variant-numeric:tabular-nums;margin-left:4px}
+.buttons{display:flex;align-items:center;gap:6px}.primary{border-color:transparent;font-weight:750;background:var(--accent);color:var(--ink);min-width:92px}.primary:hover{background:#ded4ff;border-color:transparent}
+.progress{height:3px;background:#333b52}.progress div{height:100%;width:0;background:var(--accent)}
+.field{height:clamp(225px,42vh,460px);position:relative;overflow:hidden;background:linear-gradient(180deg,#141c2a,#1b2340);isolation:isolate}
+.lanes{position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 calc(100% / 7 - 1px),#7d86a425 calc(100% / 7 - 1px) calc(100% / 7)),repeating-linear-gradient(0deg,transparent 0 47px,#7d86a41c 47px 48px)}
+.sharp-lane{position:absolute;inset-block:0;width:5%;transform:translateX(-50%);background:#0a112638;border-inline:1px dashed #5b62802d}
+.notes{position:absolute;inset:0;pointer-events:none}
+.note{position:absolute;top:0;left:var(--x);width:11%;height:var(--length);transform:translate(-50%,var(--y));border-radius:8px;border:1px solid #ffffff52;background:linear-gradient(180deg,#b1a4ff70,#b6a7ff);color:#191335;display:flex;align-items:flex-end;justify-content:center;padding-bottom:5px;gap:3px;min-height:28px;box-shadow:0 2px 12px #0b102a4d;font-size:clamp(9px,1.35vw,13px);font-weight:800}
+.note.sharp{width:7%;background:linear-gradient(180deg,#63dcca6e,#8de7d9);color:#0d2d32;z-index:2}.note.active{background:#a6efcc;color:#172e27}.note.missed{opacity:.35}
+.glyph{font-size:1.3em;font-weight:500;line-height:1.05;font-family:"Bravura Text","Noto Music","Apple Symbols",serif}
+.target{position:absolute;bottom:8px;left:0;right:0;height:2px;background:#c8baff;box-shadow:0 0 10px #baa5ff;pointer-events:none;z-index:3}
+.target-label{position:absolute;bottom:13px;left:8px;font-size:9px;font-weight:750;letter-spacing:.08em;color:#e3d9ff;background:#242846df;padding:2px 4px;border-radius:3px;pointer-events:none;z-index:4}
+.badge{position:absolute;left:10px;top:10px;z-index:4;padding:5px 8px;border-radius:6px;background:#1c2539e8;color:var(--muted);font-size:11px;font-weight:650}
+.overlay{position:absolute;z-index:5;left:50%;top:49%;transform:translate(-50%,-50%);width:min(330px,88%);text-align:center;background:#192235ed;border:1px solid #71658c;border-radius:15px;padding:17px 13px;box-shadow:0 10px 30px #0b102880;pointer-events:none}
+.overlay strong{display:block;font-size:21px;letter-spacing:-.025em}.overlay p{color:#d3cce7;font-size:12px;line-height:1.5;margin-top:5px}.overlay[hidden],select[hidden],button[hidden],.badge[hidden]{display:none}
+.keys{height:clamp(135px,27vh,246px);position:relative;background:#151826;touch-action:none;user-select:none;-webkit-user-select:none;padding-bottom:4px}
+.key{position:absolute;left:var(--left);margin:0;top:0;height:calc(100% - 4px);width:calc(100% / 7);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;padding:0 1px 11px;color:#20263c;background:linear-gradient(180deg,#e1e4f3,#fafaff 56%,#e7e8f3);border:1px solid #374058;border-top:0;border-bottom:4px solid #abb5ce;border-radius:0 0 9px 9px;font-size:clamp(10px,1.6vw,15px);font-weight:770}
+.key kbd{font:600 10px system-ui;color:#4b5474;padding:2px 5px;background:#d6dbeb;border-radius:4px}
+.key.sharp{z-index:2;transform:translateX(-50%);width:8.7%;height:60%;background:linear-gradient(180deg,#434968,#161e34 44%,#111629);color:#f0edff;border:1px solid #59617d;border-top:0;border-bottom:5px solid #080e1e;box-shadow:0 5px 10px #10152175;padding-bottom:7px;font-size:clamp(8px,1.2vw,12px)}
+.key.sharp kbd{color:#e6e4ff;background:#39425e}.key.pressed{background:#c4b4ff;border-bottom-color:#8b77d2}.key.sharp.pressed{background:#4d9d94;border-bottom-color:#2a615a}
+.under{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-top:9px;font-size:12px;color:var(--muted);line-height:1.45}.under p:first-child{color:#dcd5fa}.under .ok{color:var(--ok)!important}.under .error{color:var(--error)!important}
+.midi{max-width:115px;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:780px){.app{padding-top:16px}.layout{grid-template-columns:minmax(0,1fr);gap:15px}header{margin-bottom:14px}nav{display:flex;gap:3px;padding:4px}.nav-title,.level small{display:none}.level{justify-content:center;gap:5px;padding:6px 3px;margin:0}.level b{width:21px;height:21px}.level span{font-size:11px}.level{flex:1}}
+@media(max-width:500px){.metrics{gap:9px;font-size:10px}.stage-head{padding:7px}.stage-head .control{padding:7px 6px;font-size:11px}.primary{min-width:62px}.level span{font-size:0}.level span::after{content:attr(data-short);font-size:9px}.level{flex-direction:column}.brand-mark{width:35px;height:35px}.brand{gap:7px}h1{font-size:21px}header p{font-size:10px}.tools{gap:5px}.tools .control{padding:6px;font-size:10px}.key.sharp kbd{font-size:8px}}
+@media(orientation:landscape) and (max-height:550px){.app{padding-top:7px}.field{height:135px}.keys{height:115px}header{margin-bottom:7px}.intro{margin-bottom:6px}.intro p{font-size:11px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="brand"><div class="brand-mark" aria-hidden="true">♫</div><div><h1>Нотопад</h1><p>Тренажёр фортепиано</p></div></div>
+  <div class="tools">
+    <button class="control midi" type="button" id="midi" hidden>MIDI</button>
+    <button class="control" type="button" id="sound" aria-pressed="true">Звук вкл.</button>
+    <button class="control" type="button" id="sound-test">Проверить звук</button>
+  </div>
+</header>
+<div class="layout">
+<nav aria-label="Уровни">
+  <span class="nav-title">Уровни</span>
+  <button class="level" type="button" data-level="0" aria-pressed="true"><b>1</b><span data-short="Ноты">Знакомство с нотами<small>Белые и чёрные клавиши</small></span></button>
+  <button class="level" type="button" data-level="1" aria-pressed="false"><b>2</b><span data-short="Ритм">Ритм и длительности<small>От восьмых до целых</small></span></button>
+  <button class="level" type="button" data-level="2" aria-pressed="false"><b>3</b><span data-short="Мелодии">Мелодии<small>Четыре такта</small></span></button>
+  <button class="level" type="button" data-level="3" aria-pressed="false"><b>4</b><span data-short="Аккорды">Сборка аккордов<small>По нотам и вместе</small></span></button>
+  <button class="level" type="button" data-level="4" aria-pressed="false"><b>5</b><span data-short="Цепочка">Цепочка аккордов<small>Четыре аккорда подряд</small></span></button>
+</nav>
+<main class="main">
+  <div class="intro">
+    <div><h2 id="title">Знакомство с нотами</h2><p id="description"></p></div>
+    <select class="control" id="melody" aria-label="Выбрать мелодию" hidden>
+      <option>Первые шаги</option><option>Эхо</option><option>Вальс</option>
+    </select>
+  </div>
+  <section class="stage" aria-label="Игровое поле">
+    <div class="stage-head">
+      <div class="metrics"><span>Темп <strong id="tempo">46 BPM</strong></span><span>Точно <strong id="hits">0</strong></span><span>Ошибки <strong id="errors">0</strong></span></div>
+      <div class="buttons"><button class="control" type="button" id="restart" aria-label="В начало" title="В начало" hidden>↺</button><button class="control primary" type="button" id="play">Начать</button></div>
+    </div>
+    <div class="progress" role="progressbar" aria-label="Прогресс упражнения" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="progress"></div></div>
+    <div class="field" id="field">
+      <div class="lanes" id="lanes"></div><div class="notes" id="notes" aria-hidden="true"></div>
+      <div class="badge" id="phase" hidden></div>
+      <div class="target"></div><div class="target-label">ЛИНИЯ УДАРА</div>
+      <div class="overlay" id="overlay"><strong id="overlay-title">Сыграйте первую ноту</strong><p id="overlay-text">Нажмите «Начать», затем сыграйте ноту, когда её нижний край дойдёт до линии удара.</p></div>
+    </div>
+    <div class="keys" id="keys" aria-label="Клавиши первой октавы"></div>
+  </section>
+  <div class="under"><p id="feedback" role="status">Нажмите на клавиши, чтобы услышать звук.</p><p>Мышь · Сенсорный экран · Компьютерная клавиатура</p></div>
+</main>
+</div>
+</div>
+<script>
+'use strict';
+const pitches = [
+  ['До','A',0],['До♯','W',1,true],['Ре','S',1],['Ре♯','E',2,true],
+  ['Ми','D',2],['Фа','F',3],['Фа♯','T',4,true],['Соль','G',4],
+  ['Соль♯','Y',5,true],['Ля','H',5],['Ля♯','U',6,true],['Си','J',6]
+];
+const codes = Object.fromEntries(pitches.map(([name, letter], index) => ['Key' + letter, index]));
+const lessons = [
+  ['Знакомство с нотами','Играйте случайные ноты первой октавы, включая чёрные клавиши. Темп постепенно вырастет.',46],
+  ['Ритм и длительности','Нажимайте на линии удара и держите клавишу, пока верхний край полосы не пройдёт линию.',45],
+  ['Мелодии','Сыграйте каждый такт три раза, затем всю мелодию в медленном и ускоренном темпе.',48],
+  ['Сборка аккордов','Сыграйте три ноты по очереди, затем нажмите их одновременно.',48],
+  ['Цепочка аккордов','Нажимайте три клавиши одновременно и удерживайте аккорд четыре доли.',48]
+];
+const melodies = [
+  [[[0,1],[2,1],[4,2]],[[5,1],[4,1],[2,2]],[[4,0.5],[5,0.5],[7,1],[4,2]],[[0,4]]],
+  [[[7,1],[4,1],[0,2]],[[5,1],[2,1],[0,2]],[[2,0.5],[4,0.5],[5,1],[7,2]],[[0,4]]],
+  [[[0,1],[4,1],[7,1]],[[9,1],[5,2]],[[7,0.5],[5,0.5],[4,1],[2,1]],[[0,1],[4,2]]]
+];
+const chords = [
+  [[0,4,7],'До — Ми — Соль'],
+  [[0,5,9],'До — Фа — Ля'],
+  [[11,2,7],'Си — Ре — Соль'],
+  [[0,4,7],'До — Ми — Соль']
+];
+const durations = {0.5:['♪','восьмая'],1:['♩','четверть'],2:['𝅗𝅥','половинная'],4:['𝅝','целая']};
+const el = Object.fromEntries([...document.querySelectorAll('[id]')].map(node => [node.id,node]));
+const progressBar = el.progress.parentElement;
+const keyNodes = [];
+const sources = new Map();
+const voices = new Map();
+const audioSamples = new Map();
+let audio, midiAccess, level = 0, mode = 'idle', enabledSound = true;
+let events = [], animation = 0, origin = 0, pausedAt = 0, hits = 0, errors = 0, cursor = 0;
+let progressSeen = -1, lastCount = null;
+const lead = 2.7;
+const chordWindow = 0.28;
+
+function position(index) {
+  const [, , left, sharp] = pitches[index];
+  return (left + (sharp ? 0 : 0.5)) * 100 / 7;
+}
+pitches.forEach(([name, letter, column, sharp], index) => {
+  const key = document.createElement('button');
+  key.type = 'button';
+  key.className = sharp ? 'key sharp' : 'key';
+  key.style.setProperty('--left', 100 * column / 7 + '%');
+  key.setAttribute('aria-label', name + ', клавиша ' + letter);
+  key.innerHTML = '<span>' + name + '</span><kbd>' + letter + '</kbd>';
+  el.keys.append(key);
+  keyNodes.push(key);
+  key.addEventListener('click', event => {
+    warmAudio();
+    if (pendingAudio) retryAudio();
+    else if (event.detail === 0 && ![...sources.values()].includes(index)) soundOn(index,false,true);
+  });
+  key.addEventListener('pointerdown', e => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    key.setPointerCapture(e.pointerId);
+    press(index, 'pointer:' + e.pointerId);
+  });
+  for (const kind of ['pointerup','pointercancel','lostpointercapture']) {
+    key.addEventListener(kind, e => {
+      if (kind === 'pointerup') warmAudio();
+      release('pointer:' + e.pointerId);
+    });
+  }
+  key.addEventListener('keydown', e => {
+    if ((e.code === 'Space' || e.code === 'Enter') && !e.repeat) {
+      e.preventDefault();
+      press(index, 'focused:' + e.code);
+    }
+  });
+  if (sharp) {
+    const lane = document.createElement('div');
+    lane.className = 'sharp-lane';
+    lane.style.left = position(index) + '%';
+    el.lanes.append(lane);
+  }
+});
+
+function makeExercise(chosenLevel, melodyIndex, rng = Math.random) {
+  const sequence = [];
+  let time = 0;
+  let bpm = lessons[chosenLevel][2];
+  const add = (pitches, beats, hold, phase) => {
+    const beat = 60 / bpm;
+    sequence.push({pitches, beats, duration: hold ? beat * beats : 0, at: time, bpm, phase, state:'waiting', pressed:new Map(), nodes:[]});
+    time += beat * beats;
+  };
+  const rest = beats => { time += beats * 60 / bpm; };
+  const randomize = values => {
+    const result = [...values];
+    for (let i = result.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [result[i],result[j]] = [result[j],result[i]];
+    }
+    return result;
+  };
+  if (chosenLevel <= 1) {
+    const notes = randomize([...pitches.keys(),...pitches.keys()]);
+    const rhythmSets = Array.from({length:6},() => randomize([1,0.5,2,4])).flat();
+    notes.forEach((note,i) => {
+      bpm = lessons[chosenLevel][2] + 5 * Math.floor(i / 4);
+      add([note],chosenLevel === 0 ? 1 : rhythmSets[i],chosenLevel === 1,'Нота ' + (i + 1) + ' из ' + notes.length);
+    });
+  }
+  if (chosenLevel === 2) {
+    const bars = melodies[melodyIndex];
+    bars.forEach((bar,i) => {
+      for (let repeat=1; repeat<=3; repeat++) {
+        bar.forEach(([note,beats]) => add([note],beats,true,'Такт ' + (i + 1) + ' из 4 · повтор ' + repeat + ' из 3'));
+        rest(1);
+      }
+    });
+    bars.flat().forEach(([note,beats]) => add([note],beats,true,'Вся мелодия · медленно'));
+    rest(2);
+    bpm = 64;
+    bars.flat().forEach(([note,beats]) => add([note],beats,true,'Вся мелодия · быстрее'));
+  }
+  if (chosenLevel === 3) {
+    chords.forEach(([notes,label],i) => {
+      notes.forEach(note => add([note],1,false,'Аккорд ' + (i + 1) + ' из 4 · ' + label));
+      add(notes,2,true,'Вместе · ' + label);
+      rest(1);
+    });
+  }
+  if (chosenLevel === 4) {
+    chords.forEach(([notes,label],i) => add(notes,4,true,'Аккорд ' + (i + 1) + ' из 4 · ' + label));
+  }
+  return sequence;
+}
+
+function setFeedback(message, tone = '') {
+  if (el.feedback.textContent !== message) el.feedback.textContent = message;
+  el.feedback.className = tone;
+}
+function setOverlay(title, message) {
+  el['overlay-title'].textContent = title;
+  el['overlay-text'].textContent = message;
+  el.overlay.hidden = !title;
+}
+function updateScore() {
+  el.hits.textContent = hits;
+  el.errors.textContent = errors;
+  const percent = events.length ? Math.round(100 * cursor / events.length) : 0;
+  if (percent !== progressSeen) {
+    progressSeen = percent;
+    el.progress.style.width = percent + '%';
+    progressBar.setAttribute('aria-valuenow',percent);
+  }
+}
+function noteNode(pitch, beats, hold) {
+  const node = document.createElement('div');
+  node.className = 'note' + (pitches[pitch][3] ? ' sharp' : '');
+  node.style.setProperty('--x',position(pitch) + '%');
+  const name = document.createElement('span');
+  name.textContent = pitches[pitch][0];
+  node.append(name);
+  if (hold) {
+    const glyph = document.createElement('span');
+    glyph.className = 'glyph';
+    glyph.textContent = durations[beats][0];
+    node.title = durations[beats][1];
+    node.append(glyph);
+  }
+  el.notes.append(node);
+  return node;
+}
+function demo() {
+  const examples = level >= 3
+    ? [[0,0.78],[4,0.78],[7,0.78],[2,0.2],[11,0.2]]
+    : [[0,0.78],[3,0.43],[7,0.66],[9,0.19],[11,0.48]];
+  for (const [pitch,ratio] of examples) {
+    const hold = level !== 0;
+    const node = noteNode(pitch,level === 4 ? 4 : 1,hold);
+    node.style.setProperty('--y',ratio * el.field.clientHeight + 'px');
+    node.style.setProperty('--length',hold ? '46px' : '30px');
+  }
+}
+function reset() {
+  cancelAnimationFrame(animation);
+  clearKeys();
+  mode = 'idle';
+  events = [];
+  hits = errors = cursor = 0;
+  updateScore();
+  el.notes.replaceChildren();
+  el.title.textContent = lessons[level][0];
+  el.description.textContent = lessons[level][1];
+  el.tempo.textContent = lessons[level][2] + ' BPM';
+  el.melody.hidden = level !== 2;
+  el.phase.hidden = true;
+  el.restart.hidden = true;
+  el.play.textContent = 'Начать';
+  setOverlay('Сыграйте первую ноту','Нажмите «Начать», затем сыграйте ноту, когда её нижний край дойдёт до линии удара.');
+  setFeedback('Нажмите на клавиши, чтобы услышать звук.');
+  demo();
+}
+function start() {
+  warmAudio();
+  reset();
+  el.notes.replaceChildren();
+  events = makeExercise(level,el.melody.selectedIndex);
+  mode = 'playing';
+  origin = performance.now() / 1000 + 3;
+  lastCount = null;
+  el.restart.hidden = false;
+  el.play.textContent = 'Пауза';
+  setFeedback('Приготовьтесь.');
+  render();
+}
+function clock() { return performance.now() / 1000 - origin; }
+function hitTolerance(event) { return Math.min(0.32, 24 / event.bpm); }
+function expectedEnd(event) { return event.at + event.duration; }
+function holdTolerance(event) { return Math.min(0.26, event.duration * 0.24); }
+
+function settle(event, good, failure) {
+  event.state = good ? 'hit' : 'missed';
+  if (good) {
+    hits++;
+    setFeedback('Точно!', 'ok');
+  } else {
+    errors++;
+    setFeedback(failure, 'error');
+  }
+  if (events[cursor] === event) cursor++;
+  updateScore();
+}
+function advance(now) {
+  while (cursor < events.length) {
+    const event = events[cursor];
+    if (event.state === 'holding') {
+      if (now <= expectedEnd(event) + holdTolerance(event)) break;
+      settle(event,false,'Отпустите клавиши, когда полоса закончится.');
+    } else {
+      if (now <= event.at + hitTolerance(event)) break;
+      settle(event,false,event.pressed.size ? 'Нажмите все ноты аккорда вместе.' : 'Нота пропущена.');
+    }
+  }
+}
+function grade(pitch) {
+  if (mode !== 'playing') return;
+  const now = clock();
+  advance(now);
+  const event = events[cursor];
+  if (!event || Math.abs(event.at - now) > hitTolerance(event)) return;
+  if (event.state !== 'waiting') return;
+  if (!event.pitches.includes(pitch)) {
+    errors++;
+    updateScore();
+    setFeedback('Попробуйте ' + event.pitches.map(note => pitches[note][0]).join(' + ') + '.', 'error');
+    return;
+  }
+  if (!event.pressed.has(pitch)) event.pressed.set(pitch,now);
+  for (const [note,at] of event.pressed) {
+    if (now - at > chordWindow || ![...sources.values()].includes(note)) event.pressed.delete(note);
+  }
+  if (event.pressed.size !== event.pitches.length) return;
+  if (!event.duration) {
+    settle(event,true);
+  } else {
+    event.state = 'holding';
+    setFeedback(event.pitches.length > 1 ? 'Держите аккорд.' : 'Держите клавишу.', 'ok');
+  }
+}
+function render() {
+  if (mode !== 'playing') return;
+  const now = clock();
+  const last = events[events.length - 1];
+  advance(now);
+  if (cursor === events.length && now > Math.max(last.at + 0.5,expectedEnd(last) + 0.15)) {
+    mode = 'finished';
+    el.notes.replaceChildren();
+    el.phase.hidden = true;
+    el.play.textContent = 'Повторить';
+    setOverlay('Упражнение завершено', hits + ' из ' + events.length + ' сыграно точно · ошибок: ' + errors);
+    setFeedback('Можно повторить упражнение или выбрать другой уровень.');
+    return;
+  }
+  const current = events[cursor] ?? last;
+  el.tempo.textContent = current.bpm + ' BPM';
+  el.phase.textContent = current.phase;
+  el.phase.hidden = false;
+  const count = now < 0 ? Math.ceil(-now) : null;
+  if (count !== lastCount) {
+    setOverlay(count === null ? '' : String(count),'Приготовьтесь');
+    lastCount = count;
+  }
+  const line = el.field.clientHeight - 9;
+  const speed = line / lead;
+  for (const event of events) {
+    const tip = line + (now - event.at) * speed;
+    const length = event.duration ? Math.max(29,event.duration * speed) : 29;
+    const top = tip - length;
+    if (tip < -3 || top > line + 11) {
+      if (event.nodes.length) {
+        event.nodes.forEach(node => node.remove());
+        event.nodes = [];
+      }
+      continue;
+    }
+    if (!event.nodes.length) event.nodes = event.pitches.map(pitch => noteNode(pitch,event.beats,event.duration));
+    for (const node of event.nodes) {
+      node.style.setProperty('--y',top + 'px');
+      node.style.setProperty('--length',length + 'px');
+      node.classList.toggle('active',event.state === 'hit' || event.state === 'holding');
+      node.classList.toggle('missed',event.state === 'missed');
+    }
+  }
+  animation = requestAnimationFrame(render);
+}
+
+function togglePause() {
+  if (mode === 'playing') {
+    pausedAt = clock();
+    mode = 'paused';
+    const event = events[cursor];
+    if (event) {
+      event.pressed.clear();
+      if (event.state === 'holding') {
+        event.state = 'waiting';
+        pausedAt = event.at - lead;
+      }
+    }
+    cancelAnimationFrame(animation);
+    clearKeys();
+    el.play.textContent = 'Продолжить';
+    setOverlay('Пауза','Нажмите «Продолжить», чтобы вернуться к упражнению.');
+  } else {
+    warmAudio();
+    origin = performance.now() / 1000 - pausedAt;
+    mode = 'playing';
+    lastCount = undefined;
+    el.play.textContent = 'Пауза';
+    render();
+  }
+}
+
+function warmAudio() {
+  if (!enabledSound) return;
+  try {
+    const Audio = window.AudioContext || window.webkitAudioContext;
+    if (Audio && (!audio || audio.state === 'closed')) audio = new Audio();
+    if (audio && audio.state !== 'running') audio.resume().catch(() => {});
+  } catch {
+    audio = undefined;
+  }
+}
+
+// A short piano-like sample with a fast attack and decaying overtones.
+function pianoSample(index) {
+  if (audioSamples.has(index)) return audioSamples.get(index);
+  const rate = 22050;
+  const samples = new Float32Array(rate * 6);
+  const angular = 2 * Math.PI * 440 * 2 ** ((60 + index - 69) / 12);
+  const partials = [[1,0.69,1.12],[2.001,0.22,2.1],[3.006,0.13,3.2],[4.014,0.065,6.4]];
+  for (let i = 0; i < samples.length; i++) {
+    const time = i / rate;
+    const attack = Math.min(time / 0.008,1);
+    const tone = partials.reduce((sum,[ratio,amount,decay]) =>
+      sum + amount * Math.exp(-time * decay) * Math.sin(angular * ratio * time),0);
+    samples[i] = 0.32 * attack * tone;
+  }
+  const sample = {rate,samples};
+  audioSamples.set(index,sample);
+  return sample;
+}
+function mediaSource(sample) {
+  if (!sample.url) {
+    const {rate,samples} = sample;
+    const wav = new DataView(new ArrayBuffer(44 + 2 * samples.length));
+    const tag = (at,value) => [...value].forEach((c,i) => wav.setUint8(at+i,c.charCodeAt(0)));
+    tag(0,'RIFF'); wav.setUint32(4,wav.byteLength - 8,true);
+    tag(8,'WAVE'); tag(12,'fmt '); wav.setUint32(16,16,true);
+    wav.setUint16(20,1,true); wav.setUint16(22,1,true);
+    wav.setUint32(24,rate,true); wav.setUint32(28,rate * 2,true);
+    wav.setUint16(32,2,true); wav.setUint16(34,16,true);
+    tag(36,'data'); wav.setUint32(40,samples.length * 2,true);
+    samples.forEach((value,i) => wav.setInt16(44 + i * 2,value * 32767,true));
+    sample.url = URL.createObjectURL(new Blob([wav],{type:'audio/wav'}));
+  }
+  return new Audio(sample.url);
+}
+let pendingAudio = null;
+function retryAudio() {
+  if (!pendingAudio || !enabledSound) return;
+  const {index, report} = pendingAudio;
+  pendingAudio = null;
+  if (voices.has(index)) return;
+  const preview = ![...sources.values()].includes(index);
+  soundOn(index,report,preview);
+}
+function soundOn(index, report = false, preview = false) {
+  if (!enabledSound || voices.has(index)) return;
+  warmAudio();
+  const sample = pianoSample(index);
+  const voice = {};
+  voices.set(index,voice);
+  const confirm = () => {
+    if (report && voices.get(index) === voice) setFeedback('Проверка звука: нота до.', 'ok');
+  };
+  function fallback() {
+    if (!enabledSound || voices.get(index) !== voice) return;
+    if (voice.source) {
+      voice.source.disconnect();
+      voice.gain.disconnect();
+      voice.source = null;
+    }
+    try {
+      const player = mediaSource(sample);
+      voice.player = player;
+      player.play().then(confirm).catch(failed);
+    } catch {
+      failed();
+    }
+  }
+  function failed() {
+    if (!enabledSound || voices.get(index) !== voice) return;
+    voices.delete(index);
+    pendingAudio = {index,report};
+    setFeedback('Браузер заблокировал звук. Нажмите «Проверить звук».','error');
+  }
+  try {
+    if (audio?.state === 'running' || audio?.state === 'suspended' || audio?.state === 'interrupted') {
+      if (sample.context !== audio) {
+        sample.buffer = audio.createBuffer(1,sample.samples.length,sample.rate);
+        sample.buffer.copyToChannel(sample.samples,0);
+        sample.context = audio;
+      }
+      voice.context = audio;
+      voice.source = audio.createBufferSource();
+      voice.gain = audio.createGain();
+      voice.at = audio.currentTime;
+      voice.source.buffer = sample.buffer;
+      voice.source.connect(voice.gain).connect(audio.destination);
+      voice.source.onended = () => voice.gain.disconnect();
+      voice.source.start();
+      if (audio.state === 'running') confirm();
+      else audio.resume().then(() => audio.state === 'running' ? confirm() : fallback()).catch(fallback);
+    } else {
+      fallback();
+    }
+  } catch {
+    fallback();
+  }
+  if (preview) setTimeout(() => {
+    if (voices.get(index) === voice) soundOff(index);
+  },480);
+}
+function soundOff(index, immediate = false) {
+  const voice = voices.get(index);
+  if (!voice) return;
+  voices.delete(index);
+  if (voice.player) {
+    if (!immediate && voice.player.currentTime < 0.16) {
+      setTimeout(() => voice.player.pause(),180);
+    } else {
+      voice.player.pause();
+    }
+    return;
+  }
+  if (voice.source) {
+    const at = voice.context.currentTime;
+    const releaseAt = immediate ? at : Math.max(at,voice.at + 0.16);
+    voice.gain.gain.setValueAtTime(1,releaseAt);
+    voice.gain.gain.exponentialRampToValueAtTime(0.001,releaseAt + 0.1);
+    voice.source.stop(releaseAt + 0.11);
+  }
+}
+function press(pitch, source) {
+  if (sources.has(source)) return;
+  const alreadyPressed = [...sources.values()].includes(pitch);
+  sources.set(source,pitch);
+  if (alreadyPressed) return;
+  keyNodes[pitch].classList.add('pressed');
+  soundOn(pitch);
+  grade(pitch);
+}
+function release(source) {
+  if (!sources.has(source)) return;
+  const pitch = sources.get(source);
+  sources.delete(source);
+  if ([...sources.values()].includes(pitch)) return;
+  keyNodes[pitch].classList.remove('pressed');
+  soundOff(pitch);
+  if (mode !== 'playing') return;
+  const event = events[cursor];
+  if (!event?.pressed.has(pitch)) return;
+  if (event.state === 'holding') {
+    const now = clock();
+    const end = expectedEnd(event);
+    const tolerance = holdTolerance(event);
+    if (now < end - tolerance) {
+      settle(event,false,'Клавиша отпущена слишком рано.');
+      return;
+    }
+    event.pressed.delete(pitch);
+    const inTime = now <= end + tolerance;
+    if (!inTime || !event.pressed.size) {
+      settle(event,inTime,'Клавиша отпущена слишком поздно.');
+    }
+  } else {
+    event.pressed.delete(pitch);
+  }
+}
+function clearKeys() {
+  for (const source of sources.keys()) release(source);
+}
+
+function refreshMidi() {
+  const inputs = [...midiAccess.inputs.values()].filter(input => input.state === 'connected');
+  el.midi.textContent = inputs.length ? 'MIDI подключено' : 'MIDI: нет клавиатуры';
+  for (const input of inputs) input.onmidimessage = ({data}) => {
+    const [status, pitch, velocity] = data;
+    if (pitch < 60 || pitch > 71) return;
+    const source = 'midi:' + input.id + ':' + (status & 15) + ':' + pitch;
+    if ((status & 240) === 144 && velocity) press(pitch-60,source);
+    if ((status & 240) === 128 || ((status & 240) === 144 && !velocity)) release(source);
+  };
+}
+if (navigator.requestMIDIAccess) {
+  el.midi.hidden = false;
+  el.midi.addEventListener('click',async () => {
+    warmAudio();
+    try {
+      midiAccess ||= await navigator.requestMIDIAccess();
+      midiAccess.onstatechange = event => {
+        if (event.port.state === 'disconnected') {
+          for (const source of sources.keys()) {
+            if (source.startsWith('midi:' + event.port.id + ':')) release(source);
+          }
+        }
+        refreshMidi();
+      };
+      refreshMidi();
+    } catch {
+      setFeedback('Браузер не предоставил доступ к MIDI.', 'error');
+    }
+  });
+}
+document.querySelectorAll('.level').forEach(button => button.addEventListener('click', () => {
+  level = Number(button.dataset.level);
+  document.querySelectorAll('.level').forEach(item => item.setAttribute('aria-pressed',item === button));
+  reset();
+}));
+el.melody.addEventListener('change',reset);
+el.play.addEventListener('click', () => mode === 'idle' || mode === 'finished' ? start() : togglePause());
+el.restart.addEventListener('click',reset);
+function setSound(enabled) {
+  enabledSound = enabled;
+  el.sound.setAttribute('aria-pressed',enabled);
+  el.sound.textContent = enabled ? 'Звук вкл.' : 'Звук выкл.';
+  if (enabled) warmAudio();
+  else {
+    pendingAudio = null;
+    for (const pitch of voices.keys()) soundOff(pitch,true);
+  }
+}
+el.sound.addEventListener('click', () => setSound(!enabledSound));
+el['sound-test'].addEventListener('click', () => {
+  setSound(true);
+  pendingAudio = null;
+  soundOff(0,true);
+  soundOn(0,true,true);
+});
+window.addEventListener('keydown',event => {
+  if (event.repeat || event.metaKey || event.ctrlKey || event.altKey || event.target.tagName === 'SELECT') return;
+  if (codes[event.code] !== undefined) {
+    event.preventDefault();
+    press(codes[event.code],'keyboard:' + event.code);
+  }
+});
+window.addEventListener('keyup',event => {
+  release('keyboard:' + event.code);
+  release('focused:' + event.code);
+});
+window.addEventListener('blur',() => {
+  if (mode === 'playing') togglePause();
+  else clearKeys();
+});
+reset();
+</script>
+</body>
+</html>
