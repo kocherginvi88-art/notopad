@@ -69,6 +69,37 @@ select{max-width:43%;color:var(--text)}
 .main:fullscreen .field{height:max(130px,calc(100dvh - clamp(115px,28vh,270px) - 185px))}
 .main:fullscreen .keys{height:clamp(115px,28vh,270px)}
 @media(orientation:landscape) and (max-height:550px){.lesson-mode .field{height:130px}}
+/* The same pitch coordinates drive the keyboard, falling notes and notation. */
+.keys .key{width:calc(100% / var(--white-keys,7))}
+.keys .key.sharp{width:calc(61% / var(--white-keys,7))}
+.note{width:calc(77% / var(--white-keys,7))}
+.note.sharp{width:calc(49% / var(--white-keys,7))}
+.lanes{background:repeating-linear-gradient(90deg,transparent 0 calc(100% / var(--white-keys,7) - 1px),#7d86a425 calc(100% / var(--white-keys,7) - 1px) calc(100% / var(--white-keys,7)))}
+.sharp-lane{width:calc(35% / var(--white-keys,7))}
+.key .octave-name{font-size:10px;font-weight:500;color:#59617b}
+.main{position:relative}
+.live-staff{width:250px;background:#f7f5ef;color:#252a39;border-radius:10px;margin:0 0 12px auto;overflow:hidden;border:1px solid #c7c3d8}
+.staff-label{font-size:11px;padding:6px 10px 0;min-height:20px}
+#live-score{display:block;width:100%;height:116px}
+.main:fullscreen .live-staff{position:absolute;right:20px;top:12px;z-index:8;width:250px}
+.main:fullscreen .mode-controls,.main:fullscreen .intro{padding-right:270px;min-height:54px}
+.main:fullscreen .field{height:max(200px,calc(100dvh - clamp(115px,28vh,270px) - 250px))}
+.rhythm-tools{display:flex;align-items:center;gap:8px}
+#beat-count{min-width:66px;font-size:14px;font-weight:700;color:var(--ok);font-variant-numeric:tabular-nums}
+.stage-head{flex-wrap:wrap}
+.rhythm-legend{font-size:12px;line-height:1.6;padding:6px 12px;color:#d8cffa;border-bottom:1px solid var(--line)}
+.score-panel{position:absolute;inset:42px 14px 34px;background:#f7f5ef;color:#252a39;border-radius:12px;z-index:4;display:flex;flex-direction:column;align-items:stretch;justify-content:center;padding:10px 12px}
+.score-panel p{font-size:13px;text-align:center;line-height:1.5}
+#score-title{font-weight:750}
+#full-score{display:block;width:100%;min-width:540px;height:150px;min-height:80px}
+.score-panel{overflow-x:auto}
+#score-caption{font-size:11px;color:#5c6071}
+.showing-score .notes,.showing-score .lanes,.showing-score .target,.showing-score .target-label{visibility:hidden}
+.showing-score .overlay{top:auto;bottom:6px;transform:translateX(-50%);padding:3px 10px;width:auto;border:0;border-radius:5px}
+.showing-score .overlay strong{font-size:13px}
+.showing-score .overlay p{display:none}
+@media(min-width:1050px){.live-staff{position:absolute;right:0;top:0}.mode-controls,.intro{padding-right:265px;min-height:64px}}
+@media(max-width:600px){.live-staff{width:210px}.mode-controls .control{font-size:11px;padding:7px}.main:fullscreen .live-staff{position:relative;right:auto;top:auto;margin-left:auto;width:210px}.main:fullscreen .mode-controls,.main:fullscreen .intro{padding-right:0;min-height:0}.rhythm-legend{font-size:10px}.score-panel{padding:6px}.tools{flex-wrap:wrap;justify-content:flex-end}.key .octave-name{font-size:8px}}
 </style>
 </head>
 <body>
@@ -94,30 +125,48 @@ select{max-width:43%;color:var(--text)}
   <div class="mode-controls" aria-label="Режим тренажёра">
     <button class="control" id="lesson-mode" type="button" aria-pressed="true">Урок</button>
     <button class="control" id="practice-mode" type="button" aria-pressed="false">Самостоятельно</button>
+    <select class="control" id="octave" aria-label="Октава и масштаб клавиатуры">
+      <option value="-12">Малая октава</option><option value="0" selected>1-я октава</option>
+      <option value="12">2-я октава</option><option value="all">Три октавы</option>
+    </select>
     <div class="teacher-controls" id="teacher">
       <select class="control" id="speed" aria-label="Скорость упражнения">
-        <option value="0.65">Темп 65%</option><option value="0.8">Темп 80%</option>
+        <option value="0.4">Темп 40%</option><option value="0.45">Темп 45%</option>
+        <option value="0.5">Темп 50%</option><option value="0.65">Темп 65%</option><option value="0.8">Темп 80%</option>
         <option value="1" selected>Темп 100%</option><option value="1.15">Темп 115%</option>
       </select>
       <button class="control" id="guide" type="button" aria-pressed="false">Звуковой пример</button>
       <button class="control" id="fullscreen" type="button">На весь экран</button>
     </div>
   </div>
+  <aside class="live-staff" aria-label="Текущие ноты на нотном стане">
+    <div class="staff-label" id="staff-label">1-я октава</div>
+    <canvas id="live-score" role="img" aria-label="Нотный стан"></canvas>
+  </aside>
   <div class="intro">
     <div><h2 id="title">Знакомство с нотами</h2><p id="description"></p></div>
     <select class="control" id="melody" aria-label="Выбрать мелодию" hidden>
-      <option>Первые шаги</option><option>Эхо</option><option>Вальс</option>
+      <option>Вальс · учебный</option><option>Марш · учебный</option><option>Танец · учебный</option>
     </select>
   </div>
   <section class="stage" aria-label="Игровое поле">
     <div class="stage-head">
       <div class="metrics"><span>Темп <strong id="tempo">46 BPM</strong></span><span id="hit-count">Точно <strong id="hits">0</strong></span><span id="error-count">Ошибки <strong id="errors">0</strong></span></div>
-      <div class="buttons"><button class="control" type="button" id="restart" aria-label="В начало" title="В начало" hidden>↺</button><button class="control primary" type="button" id="play">Начать</button></div>
+      <div class="rhythm-tools" id="rhythm-tools" hidden>
+        <button class="control" id="metronome" type="button" aria-pressed="true">Метроном вкл.</button>
+        <span id="beat-count" aria-label="Доля такта">1 · 2 · 3 · 4</span>
+      </div>
+      <div class="buttons"><button class="control" id="skip-preview" type="button" hidden>К разбору</button><button class="control" type="button" id="restart" aria-label="В начало" title="В начало" hidden>↺</button><button class="control primary" type="button" id="play">Начать</button></div>
     </div>
+    <p id="rhythm-legend" class="rhythm-legend" hidden>Целая — 4 удара · половинная — 2 · четверть — 1 · две восьмые — 1 удар</p>
     <div class="progress" role="progressbar" aria-label="Прогресс упражнения" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="progress"></div></div>
     <div class="field" id="field">
       <div class="lanes" id="lanes"></div><div class="notes" id="notes" aria-hidden="true"></div>
       <div class="badge" id="phase" hidden></div>
+      <section class="score-panel" id="score-panel" hidden aria-label="Ноты упражнения">
+        <p id="score-title"></p><canvas id="full-score" role="img" aria-label="Ноты мелодии"></canvas>
+        <p id="score-caption">Сначала послушайте, затем сыграйте по нотам.</p>
+      </section>
       <div class="target"></div><div class="target-label">ЛИНИЯ УДАРА</div>
       <div class="overlay" id="overlay"><strong id="overlay-title">Сыграйте первую ноту</strong><p id="overlay-text">Нажмите «Начать», затем сыграйте ноту, когда её нижний край дойдёт до линии удара.</p></div>
     </div>
@@ -142,11 +191,14 @@ const lessons = [
   ['Сборка аккордов','Сыграйте три ноты по очереди, затем нажмите их одновременно.',48],
   ['Цепочка аккордов','Нажимайте три клавиши одновременно и удерживайте аккорд четыре доли.',48]
 ];
+// Four bars per example. Teachers can later replace these note-duration pairs.
 const melodies = [
-  [[[0,1],[2,1],[4,2]],[[5,1],[4,1],[2,2]],[[4,0.5],[5,0.5],[7,1],[4,2]],[[0,4]]],
-  [[[7,1],[4,1],[0,2]],[[5,1],[2,1],[0,2]],[[2,0.5],[4,0.5],[5,1],[7,2]],[[0,4]]],
-  [[[0,1],[4,1],[7,1]],[[9,1],[5,2]],[[7,0.5],[5,0.5],[4,1],[2,1]],[[0,1],[4,2]]]
+  [[[0,1],[4,1],[7,1]],[[9,1],[5,1],[4,1]],[[2,1],[7,1],[11,1]],[[0,1],[4,2]]],
+  [[[0,1],[4,0.5],[7,0.5]],[[5,1],[9,1]],[[7,0.5],[5,0.5],[4,1]],[[2,1],[0,1]]],
+  [[[0,0.5],[2,0.5],[4,1],[7,2]],[[9,1],[7,1],[5,2]],[[4,0.5],[5,0.5],[7,1],[2,2]],[[0,4]]]
 ];
+const melodyNames = ['Вальс','Марш','Танец'];
+const melodyMeters = [3,2,4];
 const chords = [
   [[0,4,7],'До — Ми — Соль'],
   [[0,5,9],'До — Фа — Ля'],
@@ -156,12 +208,16 @@ const chords = [
 const durations = {0.5:['♪','восьмая'],1:['♩','четверть'],2:['𝅗𝅥','половинная'],4:['𝅝','целая']};
 const el = Object.fromEntries([...document.querySelectorAll('[id]')].map(node => [node.id,node]));
 const progressBar = el.progress.parentElement;
-const keyNodes = [];
+const keyNodes = new Map();
 const sources = new Map();
 const voices = new Map();
 const main = document.querySelector('main');
 let inLesson = true, guideEnabled = false, guideSound = null, activeGuide = null;
-let speedMultiplier = 1;
+let speedMultiplier = 1, octaveOffset = 0, allOctaves = false;
+let metronomeEnabled = true, metroTimer = 0, nextTick = 0, beatGrid = [];
+const metroVoices = new Set();
+let scoreSignature = '', fullScoreSignature = '';
+
 const audioSamples = new Map();
 let audio, midiAccess, level = 0, mode = 'idle', enabledSound = true;
 let events = [], animation = 0, origin = 0, pausedAt = 0, hits = 0, errors = 0, cursor = 0;
@@ -169,61 +225,79 @@ let progressSeen = -1, lastCount = null;
 const lead = 2.7;
 const chordWindow = 0.28;
 
-function position(index) {
-  const [, , left, sharp] = pitches[index];
-  return (left + (sharp ? 0 : 0.5)) * 100 / 7;
+function pitchClass(index) { return (index % 12 + 12) % 12; }
+function noteName(index) { return pitches[pitchClass(index)][0]; }
+function octaveName(offset = octaveOffset) {
+  return offset < 0 ? 'Малая октава' : offset > 0 ? '2-я октава' : '1-я октава';
 }
-pitches.forEach(([name, letter, column, sharp], index) => {
-  const key = document.createElement('button');
-  key.type = 'button';
-  key.className = sharp ? 'key sharp' : 'key';
-  key.style.setProperty('--left', 100 * column / 7 + '%');
-  key.setAttribute('aria-label', name + ', клавиша ' + letter);
-  key.innerHTML = '<span>' + name + '</span><kbd>' + letter + '</kbd>';
-  el.keys.append(key);
-  keyNodes.push(key);
-  key.addEventListener('click', event => {
-    warmAudio();
-    if (inLesson && mode === 'playing') return;
-    if (pendingAudio) retryAudio();
-    else if (event.detail === 0 && ![...sources.values()].includes(index)) soundOn(index,false,true);
-  });
-  key.addEventListener('pointerdown', e => {
-    if (e.button !== 0) return;
-    e.preventDefault();
-    key.setPointerCapture(e.pointerId);
-    press(index, 'pointer:' + e.pointerId);
-  });
-  for (const kind of ['pointerup','pointercancel','lostpointercapture']) {
-    key.addEventListener(kind, e => {
-      if (kind === 'pointerup') warmAudio();
-      release('pointer:' + e.pointerId);
+function position(index) {
+  const [, , column, sharp] = pitches[pitchClass(index)];
+  const first = allOctaves ? -12 : octaveOffset;
+  const octaveColumn = (Math.floor(index / 12) - Math.floor(first / 12)) * 7;
+  return (octaveColumn + column + (sharp ? 0 : 0.5)) * 100 / (allOctaves ? 21 : 7);
+}
+function buildKeyboard() {
+  keyNodes.clear();
+  el.keys.replaceChildren();
+  el.lanes.replaceChildren();
+  main.style.setProperty('--white-keys',allOctaves ? 21 : 7);
+  const first = allOctaves ? -12 : octaveOffset;
+  const last = allOctaves ? 24 : octaveOffset + 12;
+  el.keys.setAttribute('aria-label',allOctaves ? 'Малая, первая и вторая октавы' : octaveName());
+  for (let index = first; index < last; index++) {
+    const [name, letter, column, sharp] = pitches[pitchClass(index)];
+    const key = document.createElement('button');
+    key.type = 'button';
+    key.className = sharp ? 'key sharp' : 'key';
+    const left = sharp ? position(index) : position(index) - 50 / (allOctaves ? 21 : 7);
+    key.style.setProperty('--left',left + '%');
+    key.setAttribute('aria-label',name + ', ' + octaveName(Math.floor(index / 12) * 12) + ', клавиша ' + letter);
+    key.innerHTML = '<span>' + name + '</span>' +
+      (!sharp && pitchClass(index) === 0 ? '<span class="octave-name">' + octaveName(Math.floor(index / 12) * 12) + '</span>' : '') +
+      (Math.floor(index / 12) * 12 === octaveOffset ? '<kbd>' + letter + '</kbd>' : '');
+    el.keys.append(key);
+    keyNodes.set(index,key);
+    key.addEventListener('click', event => {
+      warmAudio();
+      if (inLesson && mode === 'playing') return;
+      if (pendingAudio) retryAudio();
+      else if (event.detail === 0 && ![...sources.values()].includes(index)) soundOn(index,false,true);
     });
-  }
-  key.addEventListener('keydown', e => {
-    if ((e.code === 'Space' || e.code === 'Enter') && !e.repeat) {
+    key.addEventListener('pointerdown', e => {
+      if (e.button !== 0) return;
       e.preventDefault();
-      press(index, 'focused:' + e.code);
+      key.setPointerCapture(e.pointerId);
+      press(index, 'pointer:' + e.pointerId);
+    });
+    for (const kind of ['pointerup','pointercancel','lostpointercapture']) {
+      key.addEventListener(kind, e => release('pointer:' + e.pointerId));
     }
-  });
-  if (sharp) {
-    const lane = document.createElement('div');
-    lane.className = 'sharp-lane';
-    lane.style.left = position(index) + '%';
-    el.lanes.append(lane);
+    key.addEventListener('keydown', e => {
+      if ((e.code === 'Space' || e.code === 'Enter') && !e.repeat) {
+        e.preventDefault();
+        press(index, 'focused:' + e.code);
+      }
+    });
+    if (sharp) {
+      const lane = document.createElement('div');
+      lane.className = 'sharp-lane';
+      lane.style.left = position(index) + '%';
+      el.lanes.append(lane);
+    }
   }
-});
+}
 
 function makeExercise(chosenLevel, melodyIndex, rng = Math.random) {
   const sequence = [];
-  let time = 0;
+  let time = 0, beatNumber = 0, preview = false, barNumber = 0;
   let bpm = lessons[chosenLevel][2];
   const add = (pitches, beats, hold, phase) => {
     const beat = 60 / bpm;
-    sequence.push({pitches, beats, duration: hold ? beat * beats : 0, at: time, bpm, phase, state:'waiting', pressed:new Map(), nodes:[]});
+    sequence.push({pitches:pitches.map(pitch => pitch + octaveOffset), beats, duration: hold ? beat * beats : 0, at: time, beatNumber, bpm, phase, preview, barNumber, state:'waiting', pressed:new Map(), nodes:[]});
     time += beat * beats;
+    beatNumber += beats;
   };
-  const rest = beats => { time += beats * 60 / bpm; };
+  const rest = beats => { time += beats * 60 / bpm; beatNumber += beats; };
   const randomize = values => {
     const result = [...values];
     for (let i = result.length - 1; i > 0; i--) {
@@ -232,36 +306,69 @@ function makeExercise(chosenLevel, melodyIndex, rng = Math.random) {
     }
     return result;
   };
-  if (chosenLevel <= 1) {
+  if (chosenLevel === 0) {
     const notes = randomize([...pitches.keys(),...pitches.keys()]);
-    const rhythmSets = Array.from({length:6},() => randomize([1,0.5,2,4])).flat();
     notes.forEach((note,i) => {
       bpm = lessons[chosenLevel][2] + 5 * Math.floor(i / 4);
-      add([note],chosenLevel === 0 ? 1 : rhythmSets[i],chosenLevel === 1,'Нота ' + (i + 1) + ' из ' + notes.length);
+      add([note],1,false,'Нота ' + (i + 1) + ' из ' + notes.length);
     });
+  }
+  if (chosenLevel === 1) {
+    // Each block contains eight full beats. The paired eighths share one beat.
+    for (let block = 0; block < 6; block++) {
+      bpm = lessons[1][2] + block * 5;
+      const notes = randomize([...pitches.keys()]);
+      const groups = randomize([[4],[2],[1],[0.5,0.5]]);
+      let note = 0;
+      for (const group of groups) for (const duration of group) {
+        add([notes[note++]],duration,true,'Ритм · ' + durations[duration][1]);
+      }
+    }
   }
   if (chosenLevel === 2) {
     const bars = melodies[melodyIndex];
+    preview = true;
     bars.forEach((bar,i) => {
+      barNumber = i;
+      bar.forEach(([note,beats]) => add([note],beats,true,'Слушаем · ' + melodyNames[melodyIndex]));
+    });
+    rest(3 * bpm / 60);
+    preview = false;
+    bars.forEach((bar,i) => {
+      barNumber = i;
       for (let repeat=1; repeat<=3; repeat++) {
         bar.forEach(([note,beats]) => add([note],beats,true,'Такт ' + (i + 1) + ' из 4 · повтор ' + repeat + ' из 3'));
         rest(1);
       }
     });
-    bars.flat().forEach(([note,beats]) => add([note],beats,true,'Вся мелодия · медленно'));
+    bars.forEach((bar,i) => {
+      barNumber = i;
+      bar.forEach(([note,beats]) => add([note],beats,true,'Вся мелодия · медленно'));
+    });
     rest(2);
     bpm = 64;
-    bars.flat().forEach(([note,beats]) => add([note],beats,true,'Вся мелодия · быстрее'));
+    bars.forEach((bar,i) => {
+      barNumber = i;
+      bar.forEach(([note,beats]) => add([note],beats,true,'Вся мелодия · быстрее'));
+    });
   }
   if (chosenLevel === 3) {
+    preview = true;
     chords.forEach(([notes,label],i) => {
+      barNumber = i;
+      add(notes,4,true,'Слушаем аккорды · ' + label);
+    });
+    rest(3 * bpm / 60);
+    preview = false;
+    chords.forEach(([notes,label],i) => {
+      barNumber = i;
       notes.forEach(note => add([note],1,false,'Аккорд ' + (i + 1) + ' из 4 · ' + label));
       add(notes,2,true,'Вместе · ' + label);
       rest(1);
     });
   }
   if (chosenLevel === 4) {
-    chords.forEach(([notes,label],i) => add(notes,4,true,'Аккорд ' + (i + 1) + ' из 4 · ' + label));
+    chords.forEach(([notes,label],i) => { barNumber = i; add(notes,4,true,'Аккорд ' + (i + 1) + ' из 4 · ' + label); });
   }
   return sequence;
 }
@@ -278,7 +385,9 @@ function setOverlay(title, message) {
 function updateScore() {
   el.hits.textContent = hits;
   el.errors.textContent = errors;
-  const percent = events.length ? Math.round(100 * cursor / events.length) : 0;
+  const practice = events.filter(event => !event.preview);
+  const completed = events.slice(0,cursor).filter(event => !event.preview).length;
+  const percent = practice.length ? Math.round(100 * completed / practice.length) : 0;
   if (percent !== progressSeen) {
     progressSeen = percent;
     el.progress.style.width = percent + '%';
@@ -287,10 +396,10 @@ function updateScore() {
 }
 function noteNode(pitch, beats, hold) {
   const node = document.createElement('div');
-  node.className = 'note' + (pitches[pitch][3] ? ' sharp' : '');
+  node.className = 'note' + (pitches[pitchClass(pitch)][3] ? ' sharp' : '');
   node.style.setProperty('--x',position(pitch) + '%');
   const name = document.createElement('span');
-  name.textContent = pitches[pitch][0];
+  name.textContent = noteName(pitch);
   node.append(name);
   if (hold) {
     const glyph = document.createElement('span');
@@ -308,7 +417,7 @@ function demo() {
     : [[0,0.78],[3,0.43],[7,0.66],[9,0.19],[11,0.48]];
   for (const [pitch,ratio] of examples) {
     const hold = level !== 0;
-    const node = noteNode(pitch,level === 4 ? 4 : 1,hold);
+    const node = noteNode(pitch + octaveOffset,level === 4 ? 4 : 1,hold);
     node.style.setProperty('--y',ratio * el.field.clientHeight + 'px');
     node.style.setProperty('--length',hold ? '46px' : '30px');
   }
@@ -316,6 +425,7 @@ function demo() {
 function reset() {
   cancelAnimationFrame(animation);
   mode = 'idle';
+  stopMetronome();
   clearKeys();
   stopGuide();
   setGuideHighlight(null);
@@ -324,15 +434,22 @@ function reset() {
   updateScore();
   el.notes.replaceChildren();
   el.title.textContent = lessons[level][0];
-  el.description.textContent = lessons[level][1];
+  el.description.textContent = level === 0 ? 'Случайные ноты · ' + octaveName() + ' · постепенное ускорение.' : lessons[level][1];
   el.tempo.textContent = Math.round(lessons[level][2] * speedMultiplier) + ' BPM';
   el.melody.hidden = level !== 2;
   el.phase.hidden = true;
+  el['rhythm-tools'].hidden = el['rhythm-legend'].hidden = level !== 1;
+  el['beat-count'].textContent = '1 · 2 · 3 · 4';
+  el['skip-preview'].hidden = true;
   el.restart.hidden = true;
   el.play.textContent = 'Начать';
   setOverlay(inLesson ? 'Готовы к уроку?' : 'Сыграйте первую ноту','Нажмите «Начать», затем сыграйте ноту, когда её нижний край дойдёт до линии удара.');
   setFeedback(inLesson ? 'Ученики играют на своих синтезаторах, когда ноты доходят до линии.' : 'Нажмите на клавиши, чтобы услышать звук.');
   demo();
+  showScore(level === 2 || level === 3);
+  scoreSignature = fullScoreSignature = '';
+  updateNotation(null);
+  updateFullScore(null);
 }
 function start() {
   warmAudio();
@@ -340,7 +457,10 @@ function start() {
   el.notes.replaceChildren();
   events = makeExercise(level,el.melody.selectedIndex);
   mode = 'playing';
-  origin = performance.now() / 1000 + 3;
+  const countIn = level === 1 ? 4 * 60 / lessons[1][2] : 3;
+  origin = performance.now() / 1000 + countIn / speedMultiplier;
+  beatGrid = makeBeatGrid(events,level === 1 ? 4 : 0);
+  startMetronome();
   lastCount = null;
   el.restart.hidden = false;
   el.play.textContent = 'Пауза';
@@ -362,14 +482,14 @@ function stopGuide() {
 function advanceLesson(now) {
   const noteEnd = event => event.at + (event.duration || 0.28);
   const previousCursor = cursor;
-  while (cursor < events.length && now >= noteEnd(events[cursor])) cursor++;
+  while (cursor < events.length && (inLesson || events[cursor].preview) && now >= noteEnd(events[cursor])) cursor++;
   if (previousCursor !== cursor) updateScore();
   const event = events[cursor];
-  const active = event && now >= event.at ? event : null;
+  const active = event && now >= event.at && now < event.at + (event.duration || 0.28) ? event : null;
   setGuideHighlight(active);
   if (guideSound !== active) {
     stopGuide();
-    if (guideEnabled && active) {
+    if ((guideEnabled || active?.preview) && active) {
       guideSound = active;
       active.pitches.forEach(pitch => soundOn(pitch));
     }
@@ -404,7 +524,7 @@ function advance(now) {
   }
 }
 function grade(pitch) {
-  if (inLesson || mode !== 'playing') return;
+  if (inLesson || events[cursor]?.preview || mode !== 'playing') return;
   const now = clock();
   advance(now);
   const event = events[cursor];
@@ -413,7 +533,7 @@ function grade(pitch) {
   if (!event.pitches.includes(pitch)) {
     errors++;
     updateScore();
-    setFeedback('Попробуйте ' + event.pitches.map(note => pitches[note][0]).join(' + ') + '.', 'error');
+    setFeedback('Попробуйте ' + event.pitches.map(noteName).join(' + ') + '.', 'error');
     return;
   }
   if (!event.pressed.has(pitch)) event.pressed.set(pitch,now);
@@ -432,14 +552,29 @@ function render() {
   if (mode !== 'playing') return;
   const now = clock();
   const last = events[events.length - 1];
-  if (inLesson) advanceLesson(now);
+  if (inLesson || events[cursor]?.preview) advanceLesson(now);
   else advance(now);
+  const currentEvent = events[cursor];
+  const active = currentEvent && now >= currentEvent.at && now < currentEvent.at + (currentEvent.duration || 0.28) ? currentEvent : null;
+  if (!inLesson && !currentEvent?.preview) {
+    setGuideHighlight(null);
+    stopGuide();
+  }
+  showScore(Boolean(currentEvent?.preview));
+  updateNotation(active);
+  updateFullScore(active);
+  el['skip-preview'].hidden = !currentEvent?.preview;
+  updateBeatDisplay(now);
   if (cursor === events.length && now > Math.max(last.at + 0.5,expectedEnd(last) + 0.15)) {
     mode = 'finished';
+    stopMetronome();
+    stopGuide();
+    setGuideHighlight(null);
+    showScore(false);
     el.notes.replaceChildren();
     el.phase.hidden = true;
     el.play.textContent = 'Повторить';
-    setOverlay('Упражнение завершено', inLesson ? 'Можно повторить или выбрать следующий уровень.' : hits + ' из ' + events.length + ' сыграно точно · ошибок: ' + errors);
+    setOverlay('Упражнение завершено', inLesson ? 'Можно повторить или выбрать следующий уровень.' : hits + ' из ' + events.filter(event => !event.preview).length + ' сыграно точно · ошибок: ' + errors);
     setFeedback('Можно повторить упражнение или выбрать другой уровень.');
     return;
   }
@@ -447,7 +582,10 @@ function render() {
   el.tempo.textContent = Math.round(current.bpm * speedMultiplier) + ' BPM';
   el.phase.textContent = current.phase;
   el.phase.hidden = false;
-  const count = now < 0 ? Math.ceil(-now / speedMultiplier) : null;
+  const firstPractice = events.find(event => !event.preview);
+  const beforePractice = currentEvent && !currentEvent.preview && now < currentEvent.at && cursor > 0 && events[cursor - 1].preview;
+  const count = now < 0 ? Math.ceil(-now / speedMultiplier) :
+    beforePractice ? Math.ceil((firstPractice.at - now) / speedMultiplier) : null;
   if (count !== lastCount) {
     setOverlay(count === null ? '' : String(count),'Приготовьтесь');
     lastCount = count;
@@ -455,6 +593,7 @@ function render() {
   const line = el.field.clientHeight - 9;
   const speed = line / lead;
   for (const event of events) {
+    if (event.preview) continue;
     const tip = line + (now - event.at) * speed;
     const length = event.duration ? Math.max(29,event.duration * speed) : 29;
     const top = tip - length;
@@ -481,7 +620,7 @@ function togglePause() {
     pausedAt = clock();
     mode = 'paused';
     const event = events[cursor];
-    if (event && !inLesson) {
+    if (event && !inLesson && !event.preview) {
       event.pressed.clear();
       if (event.state === 'holding') {
         event.state = 'waiting';
@@ -489,6 +628,7 @@ function togglePause() {
       }
     }
     cancelAnimationFrame(animation);
+    stopMetronome();
     clearKeys();
     stopGuide();
     el.play.textContent = 'Продолжить';
@@ -499,9 +639,246 @@ function togglePause() {
     mode = 'playing';
     lastCount = undefined;
     el.play.textContent = 'Пауза';
+    startMetronome();
     render();
   }
 }
+
+function showScore(show) {
+  el['score-panel'].hidden = !show;
+  el.field.classList.toggle('showing-score',show);
+}
+function fitCanvas(canvas) {
+  const width = Math.max(120,canvas.clientWidth || 250);
+  const height = Math.max(80,canvas.clientHeight || 140);
+  const ratio = Math.min(window.devicePixelRatio || 1,3);
+  if (canvas.width !== Math.round(width * ratio) || canvas.height !== Math.round(height * ratio)) {
+    canvas.width = Math.round(width * ratio);
+    canvas.height = Math.round(height * ratio);
+  }
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(ratio,0,0,ratio,0,0);
+  ctx.clearRect(0,0,width,height);
+  return {ctx,width,height};
+}
+const diatonicSteps = [0,0,1,1,2,3,3,4,4,5,5,6];
+function diatonicPitch(pitch) {
+  return (4 + Math.floor(pitch / 12)) * 7 + diatonicSteps[pitchClass(pitch)];
+}
+function drawStaff(ctx,left,right,top,gap,bass,meter) {
+  ctx.strokeStyle = '#878999';
+  ctx.lineWidth = 0.8;
+  for (let line = 0; line < 5; line++) {
+    const y = top + line * gap;
+    ctx.beginPath(); ctx.moveTo(left,y); ctx.lineTo(right,y); ctx.stroke();
+  }
+  ctx.fillStyle = '#2a2d3c';
+  ctx.font = (gap * 5.3) + 'px "Apple Symbols","Noto Music",serif';
+  ctx.fillText(bass ? '𝄢' : '𝄞',left + 5,top + gap * (bass ? 2.6 : 4.1));
+  if (meter) {
+    ctx.font = 'bold ' + (gap * 1.8) + 'px Georgia,serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(String(meter),left + 44,top + 1.7 * gap);
+    ctx.fillText('4',left + 44,top + 3.5 * gap);
+    ctx.textAlign = 'left';
+  }
+}
+function drawNotation(ctx,notes,beats,x,top,gap,bass,active = false) {
+  const bottom = top + gap * 4;
+  const base = bass ? 18 : 30; // G2 and E4 are the bottom staff lines.
+  const positions = [...notes].sort((a,b) => diatonicPitch(a) - diatonicPitch(b))
+    .map(pitch => ({pitch,y:bottom - (diatonicPitch(pitch) - base) * gap / 2}));
+  const color = active ? '#137a57' : '#292c3b';
+  const whole = beats === 4;
+  const filled = beats < 2;
+  const headWidth = gap * (whole ? 0.8 : 0.65);
+  const ys = positions.map(note => note.y);
+  for (const {pitch,y} of positions) {
+    ctx.strokeStyle = '#777a8c';
+    ctx.lineWidth = 0.8;
+    for (let ledger = bottom + gap; ledger <= y + 0.1; ledger += gap) {
+      ctx.beginPath(); ctx.moveTo(x-headWidth-3,ledger); ctx.lineTo(x+headWidth+3,ledger); ctx.stroke();
+    }
+    for (let ledger = top - gap; ledger >= y - 0.1; ledger -= gap) {
+      ctx.beginPath(); ctx.moveTo(x-headWidth-3,ledger); ctx.lineTo(x+headWidth+3,ledger); ctx.stroke();
+    }
+    if (pitches[pitchClass(pitch)][3]) {
+      ctx.fillStyle = color;
+      ctx.font = (gap * 2) + 'px serif';
+      ctx.fillText('♯',x - gap * 2.1,y + gap * 0.6);
+    }
+    ctx.beginPath();
+    ctx.ellipse(x,y,headWidth,gap * 0.43,-0.3,0,Math.PI * 2);
+    ctx.fillStyle = filled ? color : '#f7f5ef';
+    ctx.fill();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.6;
+    ctx.stroke();
+  }
+  if (!whole) {
+    const up = (Math.min(...ys) + Math.max(...ys)) / 2 >= top + gap * 2;
+    const stemX = x + (up ? headWidth * 0.85 : -headWidth * 0.85);
+    const stemStart = up ? Math.max(...ys) : Math.min(...ys);
+    const stemEnd = up ? Math.min(...ys) - gap * 3.2 : Math.max(...ys) + gap * 3.2;
+    ctx.strokeStyle = color; ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.moveTo(stemX,stemStart); ctx.lineTo(stemX,stemEnd); ctx.stroke();
+    if (beats === 0.5) {
+      const direction = up ? 1 : -1;
+      ctx.beginPath(); ctx.moveTo(stemX,stemEnd);
+      ctx.bezierCurveTo(stemX + gap * 2,stemEnd + direction * gap,
+        stemX + gap * 1.2,stemEnd + direction * gap * 2.3,
+        stemX + gap * 0.6,stemEnd + direction * gap * 2.4);
+      ctx.stroke();
+    }
+  }
+}
+function updateNotation(event) {
+  const pitchesNow = event?.pitches ?? [octaveOffset];
+  const beats = event?.beats ?? 1;
+  const bass = pitchesNow.every(pitch => pitch < 0);
+  const signature = pitchesNow.join(',') + '/' + beats + '/' + Boolean(event) + '/' + el['live-score'].clientWidth;
+  if (signature === scoreSignature) return;
+  scoreSignature = signature;
+  const {ctx,width,height} = fitCanvas(el['live-score']);
+  const gap = Math.min(12,(height - 34) / 6);
+  const top = (height - gap * 4) / 2;
+  drawStaff(ctx,12,width-12,top,gap,bass);
+  drawNotation(ctx,pitchesNow,beats,width * 0.62,top,gap,bass,Boolean(event));
+  el['staff-label'].textContent = octaveName() + (event ? ' · ' + pitchesNow.map(noteName).join(' + ') : '');
+  el['live-score'].setAttribute('aria-label',pitchesNow.map(noteName).join(', ') + ', ' + octaveName() + ', ' + durations[beats][1]);
+}
+function scoreBars() {
+  if (level === 2) return melodies[el.melody.selectedIndex].map(bar =>
+    bar.map(([pitch,beats]) => ({pitches:[pitch + octaveOffset],beats})));
+  return chords.map(([notes]) => [{pitches:notes.map(pitch => pitch + octaveOffset),beats:4}]);
+}
+function updateFullScore(active) {
+  if (level !== 2 && level !== 3) return;
+  const signature = level + '/' + el.melody.selectedIndex + '/' + octaveOffset + '/' +
+    (active?.preview ? active.at : 'idle') + '/' + el['full-score'].clientWidth;
+  if (signature === fullScoreSignature) return;
+  fullScoreSignature = signature;
+  const bars = scoreBars();
+  const {ctx,width,height} = fitCanvas(el['full-score']);
+  const bass = octaveOffset < 0;
+  const gap = Math.min(11,(height - 35) / 7);
+  const top = (height - gap * 4) / 2;
+  const meter = level === 2 ? melodyMeters[el.melody.selectedIndex] : 4;
+  const scoreStart = 72;
+  const barWidth = (width - scoreStart - 10) / 4;
+  drawStaff(ctx,4,width - 8,top,gap,bass,meter);
+  const previewEvents = events.filter(event => event.preview);
+  bars.forEach((bar,i) => {
+    let beat = 0;
+    const before = bars.slice(0,i).reduce((sum,notes) => sum + notes.length,0);
+    bar.forEach((note,index) => {
+      const x = scoreStart + i * barWidth + 12 + beat / meter * Math.max(0,barWidth - 21);
+      drawNotation(ctx,note.pitches,note.beats,x,top,gap,bass,
+        Boolean(active?.preview && previewEvents[before + index] === active));
+      beat += note.beats;
+    });
+    const lineX = scoreStart + (i+1) * barWidth;
+    ctx.strokeStyle = '#636778'; ctx.lineWidth = i === 3 ? 2 : 0.9;
+    ctx.beginPath(); ctx.moveTo(lineX,top); ctx.lineTo(lineX,top + 4*gap); ctx.stroke();
+  });
+  el['score-title'].textContent = level === 2 ? melodyNames[el.melody.selectedIndex] + ' · ' + meter + '/4 · учебная мелодия' : 'Аккорды перед разбором';
+  el['full-score'].setAttribute('aria-label',bars.map((bar,i) => 'Такт ' + (i+1) + ' ' +
+    bar.map(note => note.pitches.map(noteName).join(' + ') + ', ' + durations[note.beats][1]).join('; ')).join('. '));
+}
+function makeBeatGrid(sequence,countIn = 0) {
+  const grid = [];
+  const firstBpm = sequence[0]?.bpm ?? 45;
+  for (let beat = -countIn; beat < 0; beat++) grid.push({at:beat * 60 / firstBpm,number:beat+countIn});
+  for (const event of sequence) {
+    for (let beat = Math.ceil(event.beatNumber - 0.00001); beat < event.beatNumber + event.beats - 0.00001; beat++) {
+      grid.push({at:event.at + (beat-event.beatNumber) * 60 / event.bpm,number:beat});
+    }
+  }
+  return grid;
+}
+function stopMetronome() {
+  clearTimeout(metroTimer);
+  metroTimer = 0;
+  for (const voice of metroVoices) {
+    voice.gain.disconnect();
+    try { voice.oscillator.stop(); } catch {}
+  }
+  metroVoices.clear();
+}
+function clickMetronome(at,strong) {
+  const oscillator = audio.createOscillator();
+  const gain = audio.createGain();
+  oscillator.frequency.value = strong ? 1250 : 850;
+  gain.gain.setValueAtTime(0,at);
+  gain.gain.linearRampToValueAtTime(0.22,at + 0.002);
+  gain.gain.exponentialRampToValueAtTime(0.001,at + 0.045);
+  oscillator.connect(gain).connect(audio.destination);
+  const voice = {oscillator,gain};
+  metroVoices.add(voice);
+  oscillator.onended = () => { gain.disconnect(); metroVoices.delete(voice); };
+  oscillator.start(at);
+  oscillator.stop(at + 0.055);
+}
+function startMetronome() {
+  stopMetronome();
+  if (mode !== 'playing' || level !== 1 || !metronomeEnabled || !enabledSound) return;
+  warmAudio();
+  nextTick = beatGrid.findIndex(beat => beat.at >= clock() - 0.012);
+  if (nextTick < 0) return;
+  function schedule() {
+    if (mode !== 'playing') return;
+    const now = clock();
+    if (audio?.state === 'running') {
+      while (nextTick < beatGrid.length && beatGrid[nextTick].at <= now + 0.12 * speedMultiplier) {
+        const beat = beatGrid[nextTick++];
+        if (beat.at >= now - 0.045 * speedMultiplier) {
+          clickMetronome(audio.currentTime + Math.max(0,(beat.at - now) / speedMultiplier),beat.number % 4 === 0);
+        }
+      }
+    }
+    metroTimer = setTimeout(schedule,25);
+  }
+  schedule();
+}
+function updateBeatDisplay(now) {
+  if (level !== 1) return;
+  const beat = beatGrid.findLast(tick => tick.at <= now);
+  el['beat-count'].textContent = beat ? 'Доля ' + (beat.number % 4 + 1) + ' / 4' : '1 · 2 · 3 · 4';
+}
+el.octave.addEventListener('change',() => {
+  reset();
+  allOctaves = el.octave.value === 'all';
+  octaveOffset = allOctaves ? 0 : Number(el.octave.value);
+  buildKeyboard();
+  if (midiAccess) refreshMidi();
+  scoreSignature = fullScoreSignature = '';
+  reset();
+});
+el.metronome.addEventListener('click',() => {
+  metronomeEnabled = !metronomeEnabled;
+  el.metronome.setAttribute('aria-pressed',metronomeEnabled);
+  el.metronome.textContent = metronomeEnabled ? 'Метроном вкл.' : 'Метроном выкл.';
+  if (metronomeEnabled) { setSound(true); startMetronome(); }
+  else stopMetronome();
+});
+el['skip-preview'].addEventListener('click',() => {
+  if (mode !== 'playing' || !events[cursor]?.preview) return;
+  stopGuide();
+  cancelAnimationFrame(animation);
+  cursor = events.findIndex(event => !event.preview);
+  origin = performance.now() / 1000 - (events[cursor].at - 3 * speedMultiplier) / speedMultiplier;
+  lastCount = undefined;
+  updateScore();
+  render();
+});
+if (typeof ResizeObserver !== 'undefined') {
+  new ResizeObserver(() => {
+    scoreSignature = fullScoreSignature = '';
+    updateNotation(activeGuide);
+    updateFullScore(activeGuide);
+  }).observe(main);
+}
+
 
 function warmAudio() {
   if (!enabledSound) return;
@@ -635,12 +1012,13 @@ function soundOff(index, immediate = false) {
   }
 }
 function press(pitch, source) {
-  if ((inLesson && mode === 'playing') || sources.has(source)) return;
+  if ((mode === 'playing' && (inLesson || events[cursor]?.preview)) || sources.has(source)) return;
   const alreadyPressed = [...sources.values()].includes(pitch);
   sources.set(source,pitch);
   if (alreadyPressed) return;
-  keyNodes[pitch].classList.add('pressed');
+  keyNodes.get(pitch)?.classList.add('pressed');
   soundOn(pitch);
+  updateNotation({pitches:[...new Set(sources.values())],beats:1});
   grade(pitch);
 }
 function release(source) {
@@ -648,8 +1026,10 @@ function release(source) {
   const pitch = sources.get(source);
   sources.delete(source);
   if ([...sources.values()].includes(pitch)) return;
-  keyNodes[pitch].classList.remove('pressed');
+  keyNodes.get(pitch)?.classList.remove('pressed');
   soundOff(pitch);
+  const held = [...new Set(sources.values())];
+  updateNotation(held.length ? {pitches:held,beats:1} : null);
   if (mode !== 'playing') return;
   const event = events[cursor];
   if (!event?.pressed.has(pitch)) return;
@@ -679,7 +1059,7 @@ function refreshMidi() {
   el.midi.textContent = inputs.length ? 'MIDI подключено' : 'MIDI: нет клавиатуры';
   for (const input of inputs) input.onmidimessage = ({data}) => {
     const [status, pitch, velocity] = data;
-    if (pitch < 60 || pitch > 71) return;
+    if (!keyNodes.has(pitch - 60)) return;
     const source = 'midi:' + input.id + ':' + (status & 15) + ':' + pitch;
     if ((status & 240) === 144 && velocity) press(pitch-60,source);
     if ((status & 240) === 128 || ((status & 240) === 144 && !velocity)) release(source);
@@ -716,8 +1096,9 @@ function setSound(enabled) {
   enabledSound = enabled;
   el.sound.setAttribute('aria-pressed',enabled);
   el.sound.textContent = enabled ? 'Звук вкл.' : 'Звук выкл.';
-  if (enabled) warmAudio();
+  if (enabled) { warmAudio(); stopGuide(); if (mode === 'playing') startMetronome(); }
   else {
+    stopMetronome();
     pendingAudio = null;
     for (const pitch of voices.keys()) soundOff(pitch,true);
   }
@@ -726,8 +1107,8 @@ el.sound.addEventListener('click', () => setSound(!enabledSound));
 el['sound-test'].addEventListener('click', () => {
   setSound(true);
   pendingAudio = null;
-  soundOff(0,true);
-  soundOn(0,true,true);
+  soundOff(octaveOffset,true);
+  soundOn(octaveOffset,true,true);
 });
 function setLesson(value) {
   inLesson = value;
@@ -746,7 +1127,10 @@ el['practice-mode'].addEventListener('click',() => { if (inLesson) setLesson(fal
 el.speed.addEventListener('change',() => {
   const time = clock();
   speedMultiplier = Number(el.speed.value);
-  if (mode === 'playing') origin = performance.now() / 1000 - time / speedMultiplier;
+  if (mode === 'playing') {
+    origin = performance.now() / 1000 - time / speedMultiplier;
+    startMetronome();
+  }
   const event = events[cursor] ?? events.at(-1);
   el.tempo.textContent = Math.round((event?.bpm ?? lessons[level][2]) * speedMultiplier) + ' BPM';
 });
@@ -766,13 +1150,16 @@ el.fullscreen.addEventListener('click',async () => {
   }
 });
 document.addEventListener('fullscreenchange',() => {
-  el.fullscreen.textContent = document.fullscreenElement ? 'Выйти из полноэкранного режима' : 'На весь экран';
+  el.fullscreen.textContent = document.fullscreenElement ? 'Свернуть' : 'На весь экран';
+  scoreSignature = fullScoreSignature = '';
+  updateNotation(activeGuide);
+  updateFullScore(activeGuide);
 });
 window.addEventListener('keydown',event => {
   if (event.repeat || event.metaKey || event.ctrlKey || event.altKey || event.target.tagName === 'SELECT') return;
   if (codes[event.code] !== undefined) {
     event.preventDefault();
-    press(codes[event.code],'keyboard:' + event.code);
+    press(codes[event.code] + octaveOffset,'keyboard:' + event.code);
   }
 });
 window.addEventListener('keyup',event => {
@@ -783,6 +1170,7 @@ window.addEventListener('blur',() => {
   if (mode === 'playing' && !inLesson) togglePause();
   else clearKeys();
 });
+buildKeyboard();
 setLesson(true);
 </script>
 </body>
