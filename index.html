@@ -78,28 +78,24 @@ select{max-width:43%;color:var(--text)}
 .sharp-lane{width:calc(35% / var(--white-keys,7))}
 .key .octave-name{font-size:10px;font-weight:500;color:#59617b}
 .main{position:relative}
-.live-staff{width:250px;background:#f7f5ef;color:#252a39;border-radius:10px;margin:0 0 12px auto;overflow:hidden;border:1px solid #c7c3d8}
+.heading-row{display:grid;grid-template-columns:minmax(0,1fr) 250px;align-items:center;gap:14px;margin-bottom:12px}
+.heading-row .intro{margin-bottom:0}
+.live-staff{width:100%;background:#f7f5ef;color:#252a39;border-radius:10px;overflow:hidden;border:1px solid #c7c3d8}
 .staff-label{font-size:11px;padding:6px 10px 0;min-height:20px}
 #live-score{display:block;width:100%;height:116px}
-.main:fullscreen .live-staff{position:absolute;right:20px;top:12px;z-index:8;width:250px}
-.main:fullscreen .mode-controls,.main:fullscreen .intro{padding-right:270px;min-height:54px}
-.main:fullscreen .field{height:max(200px,calc(100dvh - clamp(115px,28vh,270px) - 250px))}
+.score-overview .heading-row{grid-template-columns:minmax(0,1fr)}
+.score-overview #live-score{height:140px;min-width:540px}
+.score-overview .live-staff{overflow-x:auto}
 .rhythm-tools{display:flex;align-items:center;gap:8px}
-#beat-count{min-width:66px;font-size:14px;font-weight:700;color:var(--ok);font-variant-numeric:tabular-nums}
+#beat-count{min-width:86px;font-size:14px;font-weight:700;color:var(--ok);font-variant-numeric:tabular-nums}
 .stage-head{flex-wrap:wrap}
 .rhythm-legend{font-size:12px;line-height:1.6;padding:6px 12px;color:#d8cffa;border-bottom:1px solid var(--line)}
-.score-panel{position:absolute;inset:42px 14px 34px;background:#f7f5ef;color:#252a39;border-radius:12px;z-index:4;display:flex;flex-direction:column;align-items:stretch;justify-content:center;padding:10px 12px}
-.score-panel p{font-size:13px;text-align:center;line-height:1.5}
-#score-title{font-weight:750}
-#full-score{display:block;width:100%;min-width:540px;height:150px;min-height:80px}
-.score-panel{overflow-x:auto}
-#score-caption{font-size:11px;color:#5c6071}
-.showing-score .notes,.showing-score .lanes,.showing-score .target,.showing-score .target-label{visibility:hidden}
-.showing-score .overlay{top:auto;bottom:6px;transform:translateX(-50%);padding:3px 10px;width:auto;border:0;border-radius:5px}
-.showing-score .overlay strong{font-size:13px}
-.showing-score .overlay p{display:none}
-@media(min-width:1050px){.live-staff{position:absolute;right:0;top:0}.mode-controls,.intro{padding-right:265px;min-height:64px}}
-@media(max-width:600px){.live-staff{width:210px}.mode-controls .control{font-size:11px;padding:7px}.main:fullscreen .live-staff{position:relative;right:auto;top:auto;margin-left:auto;width:210px}.main:fullscreen .mode-controls,.main:fullscreen .intro{padding-right:0;min-height:0}.rhythm-legend{font-size:10px}.score-panel{padding:6px}.tools{flex-wrap:wrap;justify-content:flex-end}.key .octave-name{font-size:8px}}
+.main:fullscreen{height:100dvh;display:flex;flex-direction:column;overflow:auto;gap:0}
+.main:fullscreen .stage{display:flex;flex:1;flex-direction:column;min-height:280px}
+.main:fullscreen .field{height:auto;min-height:110px;flex:1}
+.main:fullscreen .keys{height:clamp(115px,30vh,280px);flex:none}
+.main:fullscreen .heading-row{flex:none}
+@media(max-width:600px){.heading-row{grid-template-columns:minmax(0,1fr);gap:8px}.live-staff{max-width:250px;justify-self:end}.score-overview .live-staff{max-width:none}.mode-controls .control{font-size:11px;padding:7px}.rhythm-legend{font-size:10px}.tools{flex-wrap:wrap;justify-content:flex-end}.key .octave-name{font-size:8px}.heading-row .intro p{font-size:11px}}
 </style>
 </head>
 <body>
@@ -139,22 +135,24 @@ select{max-width:43%;color:var(--text)}
       <button class="control" id="fullscreen" type="button">На весь экран</button>
     </div>
   </div>
-  <aside class="live-staff" aria-label="Текущие ноты на нотном стане">
-    <div class="staff-label" id="staff-label">1-я октава</div>
-    <canvas id="live-score" role="img" aria-label="Нотный стан"></canvas>
-  </aside>
-  <div class="intro">
-    <div><h2 id="title">Знакомство с нотами</h2><p id="description"></p></div>
-    <select class="control" id="melody" aria-label="Выбрать мелодию" hidden>
-      <option>Вальс · учебный</option><option>Марш · учебный</option><option>Танец · учебный</option>
-    </select>
+  <div class="heading-row">
+    <div class="intro">
+      <div><h2 id="title">Знакомство с нотами</h2><p id="description"></p></div>
+      <select class="control" id="melody" aria-label="Выбрать мелодию" hidden>
+        <option>Вальс · учебный</option><option>Марш · учебный</option><option>Танец · учебный</option>
+      </select>
+    </div>
+    <aside class="live-staff" aria-label="Нотный стан" id="staff">
+      <div class="staff-label" id="staff-label">1-я октава</div>
+      <canvas id="live-score" role="img" aria-label="Нотный стан"></canvas>
+    </aside>
   </div>
   <section class="stage" aria-label="Игровое поле">
     <div class="stage-head">
       <div class="metrics"><span>Темп <strong id="tempo">46 BPM</strong></span><span id="hit-count">Точно <strong id="hits">0</strong></span><span id="error-count">Ошибки <strong id="errors">0</strong></span></div>
       <div class="rhythm-tools" id="rhythm-tools" hidden>
         <button class="control" id="metronome" type="button" aria-pressed="true">Метроном вкл.</button>
-        <span id="beat-count" aria-label="Доля такта">1 · 2 · 3 · 4</span>
+        <span id="beat-count" aria-label="Удары метронома">Пауза</span>
       </div>
       <div class="buttons"><button class="control" id="skip-preview" type="button" hidden>К разбору</button><button class="control" type="button" id="restart" aria-label="В начало" title="В начало" hidden>↺</button><button class="control primary" type="button" id="play">Начать</button></div>
     </div>
@@ -163,10 +161,6 @@ select{max-width:43%;color:var(--text)}
     <div class="field" id="field">
       <div class="lanes" id="lanes"></div><div class="notes" id="notes" aria-hidden="true"></div>
       <div class="badge" id="phase" hidden></div>
-      <section class="score-panel" id="score-panel" hidden aria-label="Ноты упражнения">
-        <p id="score-title"></p><canvas id="full-score" role="img" aria-label="Ноты мелодии"></canvas>
-        <p id="score-caption">Сначала послушайте, затем сыграйте по нотам.</p>
-      </section>
       <div class="target"></div><div class="target-label">ЛИНИЯ УДАРА</div>
       <div class="overlay" id="overlay"><strong id="overlay-title">Сыграйте первую ноту</strong><p id="overlay-text">Нажмите «Начать», затем сыграйте ноту, когда её нижний край дойдёт до линии удара.</p></div>
     </div>
@@ -186,9 +180,9 @@ const pitches = [
 const codes = Object.fromEntries(pitches.map(([name, letter], index) => ['Key' + letter, index]));
 const lessons = [
   ['Знакомство с нотами','Играйте случайные ноты первой октавы, включая чёрные клавиши. Темп постепенно вырастет.',46],
-  ['Ритм и длительности','Нажимайте на линии удара и держите клавишу, пока верхний край полосы не пройдёт линию.',45],
+  ['Ритм и длительности','Сыграйте ноту на линии удара, держите под метроном, затем отдохните в паузе.',45],
   ['Мелодии','Сыграйте каждый такт три раза, затем всю мелодию в медленном и ускоренном темпе.',48],
-  ['Сборка аккордов','Сыграйте три ноты по очереди, затем нажмите их одновременно.',48],
+  ['Сборка аккордов','Сначала три ноты по очереди, затем все три вместе. Следите за записью наверху.',48],
   ['Цепочка аккордов','Нажимайте три клавиши одновременно и удерживайте аккорд четыре доли.',48]
 ];
 // Four bars per example. Teachers can later replace these note-duration pairs.
@@ -216,7 +210,9 @@ let inLesson = true, guideEnabled = false, guideSound = null, activeGuide = null
 let speedMultiplier = 1, octaveOffset = 0, allOctaves = false;
 let metronomeEnabled = true, metroTimer = 0, nextTick = 0, beatGrid = [];
 const metroVoices = new Set();
-let scoreSignature = '', fullScoreSignature = '';
+let scoreSignature = '';
+let queuedPractice = [], playingPreview = false, pausedCountdown = 0;
+const countdownSeconds = 6;
 
 const audioSamples = new Map();
 let audio, midiAccess, level = 0, mode = 'idle', enabledSound = true;
@@ -289,15 +285,20 @@ function buildKeyboard() {
 
 function makeExercise(chosenLevel, melodyIndex, rng = Math.random) {
   const sequence = [];
-  let time = 0, beatNumber = 0, preview = false, barNumber = 0;
-  let bpm = lessons[chosenLevel][2];
-  const add = (pitches, beats, hold, phase) => {
-    const beat = 60 / bpm;
-    sequence.push({pitches:pitches.map(pitch => pitch + octaveOffset), beats, duration: hold ? beat * beats : 0, at: time, beatNumber, bpm, phase, preview, barNumber, state:'waiting', pressed:new Map(), nodes:[]});
-    time += beat * beats;
-    beatNumber += beats;
+  let time = 0, bpm = lessons[chosenLevel][2], groupNumber = 0;
+  const add = (notes, beats, hold, phase, details = {}) => {
+    sequence.push({
+      pitches:notes.map(pitch => pitch + octaveOffset), beats,
+      duration:hold ? 60 / bpm * beats : 0, at:time, bpm, phase,
+      preview:false, barNumber:0, noteNumber:0, rhythmGroup:groupNumber, rhythmBeat:0,
+      ...details, state:'waiting', pressed:new Map(), nodes:[]
+    });
+    time += 60 / bpm * beats;
   };
-  const rest = beats => { time += beats * 60 / bpm; beatNumber += beats; };
+  const rest = beats => { time += beats * 60 / bpm; };
+  const addBar = (bar,barNumber,phase,preview = false) => {
+    bar.forEach(([pitch,beats],noteNumber) => add([pitch],beats,true,phase,{barNumber,noteNumber,preview}));
+  };
   const randomize = values => {
     const result = [...values];
     for (let i = result.length - 1; i > 0; i--) {
@@ -307,68 +308,53 @@ function makeExercise(chosenLevel, melodyIndex, rng = Math.random) {
     return result;
   };
   if (chosenLevel === 0) {
-    const notes = randomize([...pitches.keys(),...pitches.keys()]);
-    notes.forEach((note,i) => {
-      bpm = lessons[chosenLevel][2] + 5 * Math.floor(i / 4);
-      add([note],1,false,'Нота ' + (i + 1) + ' из ' + notes.length);
+    randomize([...pitches.keys(),...pitches.keys()]).forEach((note,i) => {
+      bpm = lessons[0][2] + 5 * Math.floor(i / 4);
+      add([note],1,false,'Нота ' + (i + 1) + ' из 24');
     });
   }
   if (chosenLevel === 1) {
-    // Each block contains eight full beats. The paired eighths share one beat.
     for (let block = 0; block < 6; block++) {
       bpm = lessons[1][2] + block * 5;
       const notes = randomize([...pitches.keys()]);
-      const groups = randomize([[4],[2],[1],[0.5,0.5]]);
       let note = 0;
-      for (const group of groups) for (const duration of group) {
-        add([notes[note++]],duration,true,'Ритм · ' + durations[duration][1]);
+      for (const group of randomize([[4],[2],[1],[0.5,0.5]])) {
+        let rhythmBeat = 0;
+        for (const beats of group) {
+          add([notes[note++]],beats,true,'Ритм · ' + durations[beats][1],{rhythmBeat});
+          rhythmBeat += beats;
+        }
+        groupNumber++;
+        // One full beat with an empty field before the next group enters.
+        time += lead + 60 / bpm;
       }
     }
   }
   if (chosenLevel === 2) {
     const bars = melodies[melodyIndex];
-    preview = true;
+    bars.forEach((bar,i) => addBar(bar,i,'Слушаем · ' + melodyNames[melodyIndex],true));
     bars.forEach((bar,i) => {
-      barNumber = i;
-      bar.forEach(([note,beats]) => add([note],beats,true,'Слушаем · ' + melodyNames[melodyIndex]));
-    });
-    rest(3 * bpm / 60);
-    preview = false;
-    bars.forEach((bar,i) => {
-      barNumber = i;
-      for (let repeat=1; repeat<=3; repeat++) {
-        bar.forEach(([note,beats]) => add([note],beats,true,'Такт ' + (i + 1) + ' из 4 · повтор ' + repeat + ' из 3'));
+      for (let repeat = 1; repeat <= 3; repeat++) {
+        addBar(bar,i,'Такт ' + (i + 1) + ' из 4 · повтор ' + repeat + ' из 3');
         rest(1);
       }
     });
-    bars.forEach((bar,i) => {
-      barNumber = i;
-      bar.forEach(([note,beats]) => add([note],beats,true,'Вся мелодия · медленно'));
-    });
+    bars.forEach((bar,i) => addBar(bar,i,'Вся мелодия · медленно'));
     rest(2);
     bpm = 64;
-    bars.forEach((bar,i) => {
-      barNumber = i;
-      bar.forEach(([note,beats]) => add([note],beats,true,'Вся мелодия · быстрее'));
-    });
+    bars.forEach((bar,i) => addBar(bar,i,'Вся мелодия · быстрее'));
   }
   if (chosenLevel === 3) {
-    preview = true;
-    chords.forEach(([notes,label],i) => {
-      barNumber = i;
-      add(notes,4,true,'Слушаем аккорды · ' + label);
-    });
-    rest(3 * bpm / 60);
-    preview = false;
-    chords.forEach(([notes,label],i) => {
-      barNumber = i;
-      notes.forEach(note => add([note],1,false,'Аккорд ' + (i + 1) + ' из 4 · ' + label));
-      add(notes,2,true,'Вместе · ' + label);
-      rest(1);
+    chords.forEach(([notes,label],barNumber) => {
+      notes.forEach((pitch,noteNumber) => add([pitch],1,true,'По нотам · ' + label,{barNumber,noteNumber}));
+      add(notes,4,true,'Вместе · ' + label,{barNumber,noteNumber:3});
+      rest(2);
     });
   }
   if (chosenLevel === 4) {
-    chords.forEach(([notes,label],i) => { barNumber = i; add(notes,4,true,'Аккорд ' + (i + 1) + ' из 4 · ' + label); });
+    chords.forEach(([notes,label],barNumber) => {
+      add(notes,4,true,'Аккорд ' + (barNumber + 1) + ' из 4 · ' + label,{barNumber});
+    });
   }
   return sequence;
 }
@@ -411,17 +397,6 @@ function noteNode(pitch, beats, hold) {
   el.notes.append(node);
   return node;
 }
-function demo() {
-  const examples = level >= 3
-    ? [[0,0.78],[4,0.78],[7,0.78],[2,0.2],[11,0.2]]
-    : [[0,0.78],[3,0.43],[7,0.66],[9,0.19],[11,0.48]];
-  for (const [pitch,ratio] of examples) {
-    const hold = level !== 0;
-    const node = noteNode(pitch + octaveOffset,level === 4 ? 4 : 1,hold);
-    node.style.setProperty('--y',ratio * el.field.clientHeight + 'px');
-    node.style.setProperty('--length',hold ? '46px' : '30px');
-  }
-}
 function reset() {
   cancelAnimationFrame(animation);
   mode = 'idle';
@@ -430,6 +405,9 @@ function reset() {
   stopGuide();
   setGuideHighlight(null);
   events = [];
+  queuedPractice = [];
+  playingPreview = false;
+  pausedCountdown = 0;
   hits = errors = cursor = 0;
   updateScore();
   el.notes.replaceChildren();
@@ -439,34 +417,51 @@ function reset() {
   el.melody.hidden = level !== 2;
   el.phase.hidden = true;
   el['rhythm-tools'].hidden = el['rhythm-legend'].hidden = level !== 1;
-  el['beat-count'].textContent = '1 · 2 · 3 · 4';
+  el['beat-count'].textContent = 'Пауза';
   el['skip-preview'].hidden = true;
   el.restart.hidden = true;
   el.play.textContent = 'Начать';
   setOverlay(inLesson ? 'Готовы к уроку?' : 'Сыграйте первую ноту','Нажмите «Начать», затем сыграйте ноту, когда её нижний край дойдёт до линии удара.');
   setFeedback(inLesson ? 'Ученики играют на своих синтезаторах, когда ноты доходят до линии.' : 'Нажмите на клавиши, чтобы услышать звук.');
-  demo();
-  showScore(level === 2 || level === 3);
-  scoreSignature = fullScoreSignature = '';
+  main.classList.toggle('score-overview',level === 2 || level === 4);
+  scoreSignature = '';
   updateNotation(null);
-  updateFullScore(null);
+}
+function beginSequence(sequence,preview = false) {
+  cancelAnimationFrame(animation);
+  stopMetronome();
+  stopGuide();
+  setGuideHighlight(null);
+  clearKeys();
+  el.notes.replaceChildren();
+  const firstAt = sequence[0].at;
+  events = sequence.map(event => ({...event,at:event.at - firstAt + lead,nodes:[]}));
+  cursor = 0;
+  playingPreview = preview;
+  mode = 'playing';
+  origin = performance.now() / 1000 + countdownSeconds;
+  pausedCountdown = 0;
+  beatGrid = makeBeatGrid(events);
+  lastCount = undefined;
+  scoreSignature = '';
+  el.restart.hidden = false;
+  el.play.textContent = 'Пауза';
+  updateScore();
+  startMetronome();
+  render();
 }
 function start() {
   warmAudio();
   reset();
-  el.notes.replaceChildren();
-  events = makeExercise(level,el.melody.selectedIndex);
-  mode = 'playing';
-  const countIn = level === 1 ? 4 * 60 / lessons[1][2] : 3;
-  origin = performance.now() / 1000 + countIn / speedMultiplier;
-  beatGrid = makeBeatGrid(events,level === 1 ? 4 : 0);
-  startMetronome();
-  lastCount = null;
-  el.restart.hidden = false;
-  el.play.textContent = 'Пауза';
-  setFeedback(inLesson ? 'Следите за подсветкой клавиш. Длинную ноту держите, пока клавиша подсвечена.' : 'Приготовьтесь.');
-  render();
+  const sequence = makeExercise(level,el.melody.selectedIndex);
+  queuedPractice = sequence.filter(event => !event.preview);
+  const preview = sequence.filter(event => event.preview);
+  beginSequence(preview.length ? preview : queuedPractice,preview.length > 0);
 }
+function startPractice() {
+  beginSequence(queuedPractice);
+}
+
 function clock() { return (performance.now() / 1000 - origin) * speedMultiplier; }
 
 function setGuideHighlight(event) {
@@ -489,7 +484,7 @@ function advanceLesson(now) {
   setGuideHighlight(active);
   if (guideSound !== active) {
     stopGuide();
-    if ((guideEnabled || active?.preview) && active) {
+    if ((guideEnabled || active?.preview || (inLesson && level >= 3)) && active) {
       guideSound = active;
       active.pitches.forEach(pitch => soundOn(pitch));
     }
@@ -548,56 +543,75 @@ function grade(pitch) {
     setFeedback(event.pitches.length > 1 ? 'Держите аккорд.' : 'Держите клавишу.', 'ok');
   }
 }
+function soundingEvent(now) {
+  return events.find(event => now >= event.at && now < event.at + (event.duration || 0.28)) ?? null;
+}
+function approachingEvent(now) {
+  return events.find(event => event.at > now && event.at - lead <= now) ?? null;
+}
 function render() {
   if (mode !== 'playing') return;
   const now = clock();
-  const last = events[events.length - 1];
-  if (inLesson || events[cursor]?.preview) advanceLesson(now);
+  if (now < 0) {
+    const count = Math.max(0,Math.min(5,Math.ceil(-now / speedMultiplier) - 1));
+    if (count !== lastCount) {
+      setOverlay(String(count),'Приготовьтесь');
+      lastCount = count;
+    }
+    el.notes.replaceChildren();
+    events.forEach(event => { event.nodes = []; });
+    el.phase.hidden = true;
+    el['skip-preview'].hidden = true;
+    updateNotation(events[0],false);
+    updateBeatDisplay(now);
+    animation = requestAnimationFrame(render);
+    return;
+  }
+  if (lastCount !== null) {
+    setOverlay('','');
+    lastCount = null;
+  }
+  if (inLesson || playingPreview) advanceLesson(now);
   else advance(now);
-  const currentEvent = events[cursor];
-  const active = currentEvent && now >= currentEvent.at && now < currentEvent.at + (currentEvent.duration || 0.28) ? currentEvent : null;
-  if (!inLesson && !currentEvent?.preview) {
+  const active = soundingEvent(now);
+  const approaching = approachingEvent(now);
+  if (!inLesson && !playingPreview) {
     setGuideHighlight(null);
     stopGuide();
   }
-  showScore(Boolean(currentEvent?.preview));
-  updateNotation(active);
-  updateFullScore(active);
-  el['skip-preview'].hidden = !currentEvent?.preview;
+  updateNotation(active ?? approaching,Boolean(active));
+  el['skip-preview'].hidden = !playingPreview;
   updateBeatDisplay(now);
+  const last = events.at(-1);
   if (cursor === events.length && now > Math.max(last.at + 0.5,expectedEnd(last) + 0.15)) {
+    if (playingPreview) {
+      startPractice();
+      return;
+    }
     mode = 'finished';
     stopMetronome();
     stopGuide();
     setGuideHighlight(null);
-    showScore(false);
     el.notes.replaceChildren();
     el.phase.hidden = true;
     el.play.textContent = 'Повторить';
-    setOverlay('Упражнение завершено', inLesson ? 'Можно повторить или выбрать следующий уровень.' : hits + ' из ' + events.filter(event => !event.preview).length + ' сыграно точно · ошибок: ' + errors);
+    setOverlay('Упражнение завершено',inLesson ? 'Можно повторить или выбрать следующий уровень.' :
+      hits + ' из ' + events.length + ' сыграно точно · ошибок: ' + errors);
     setFeedback('Можно повторить упражнение или выбрать другой уровень.');
+    updateNotation(null);
     return;
   }
-  const current = events[cursor] ?? last;
+  const current = active ?? approaching ?? events[cursor] ?? last;
   el.tempo.textContent = Math.round(current.bpm * speedMultiplier) + ' BPM';
   el.phase.textContent = current.phase;
   el.phase.hidden = false;
-  const firstPractice = events.find(event => !event.preview);
-  const beforePractice = currentEvent && !currentEvent.preview && now < currentEvent.at && cursor > 0 && events[cursor - 1].preview;
-  const count = now < 0 ? Math.ceil(-now / speedMultiplier) :
-    beforePractice ? Math.ceil((firstPractice.at - now) / speedMultiplier) : null;
-  if (count !== lastCount) {
-    setOverlay(count === null ? '' : String(count),'Приготовьтесь');
-    lastCount = count;
-  }
   const line = el.field.clientHeight - 9;
   const speed = line / lead;
   for (const event of events) {
-    if (event.preview) continue;
     const tip = line + (now - event.at) * speed;
     const length = event.duration ? Math.max(29,event.duration * speed) : 29;
     const top = tip - length;
-    if (tip < -3 || top > line + 11) {
+    if (tip < 0 || top > line + 11) {
       if (event.nodes.length) {
         event.nodes.forEach(node => node.remove());
         event.nodes = [];
@@ -608,7 +622,7 @@ function render() {
     for (const node of event.nodes) {
       node.style.setProperty('--y',top + 'px');
       node.style.setProperty('--length',length + 'px');
-      node.classList.toggle('active',event === activeGuide || event.state === 'hit' || event.state === 'holding');
+      node.classList.toggle('active',event === active || event.state === 'hit' || event.state === 'holding');
       node.classList.toggle('missed',event.state === 'missed');
     }
   }
@@ -618,6 +632,7 @@ function render() {
 function togglePause() {
   if (mode === 'playing') {
     pausedAt = clock();
+    pausedCountdown = pausedAt < 0 ? -pausedAt / speedMultiplier : 0;
     mode = 'paused';
     const event = events[cursor];
     if (event && !inLesson && !event.preview) {
@@ -635,7 +650,7 @@ function togglePause() {
     setOverlay('Пауза','Нажмите «Продолжить», чтобы вернуться к упражнению.');
   } else {
     warmAudio();
-    origin = performance.now() / 1000 - pausedAt / speedMultiplier;
+    origin = pausedCountdown > 0 ? performance.now() / 1000 + pausedCountdown : performance.now() / 1000 - pausedAt / speedMultiplier;
     mode = 'playing';
     lastCount = undefined;
     el.play.textContent = 'Пауза';
@@ -644,10 +659,6 @@ function togglePause() {
   }
 }
 
-function showScore(show) {
-  el['score-panel'].hidden = !show;
-  el.field.classList.toggle('showing-score',show);
-}
 function fitCanvas(canvas) {
   const width = Math.max(120,canvas.clientWidth || 250);
   const height = Math.max(80,canvas.clientHeight || 140);
@@ -732,70 +743,75 @@ function drawNotation(ctx,notes,beats,x,top,gap,bass,active = false) {
     }
   }
 }
-function updateNotation(event) {
-  const pitchesNow = event?.pitches ?? [octaveOffset];
+function updateNotation(event,active = false) {
+  if (level === 2 || level === 4) {
+    updateFullScore(event,active);
+    return;
+  }
+  const notes = event?.pitches ?? (mode === 'idle' ? [octaveOffset] : []);
   const beats = event?.beats ?? 1;
-  const bass = pitchesNow.every(pitch => pitch < 0);
-  const signature = pitchesNow.join(',') + '/' + beats + '/' + Boolean(event) + '/' + el['live-score'].clientWidth;
+  const bass = octaveOffset < 0;
+  const signature = level + '/' + notes.join(',') + '/' + beats + '/' + active + '/' + el['live-score'].clientWidth;
   if (signature === scoreSignature) return;
   scoreSignature = signature;
   const {ctx,width,height} = fitCanvas(el['live-score']);
   const gap = Math.min(12,(height - 34) / 6);
   const top = (height - gap * 4) / 2;
-  drawStaff(ctx,12,width-12,top,gap,bass);
-  drawNotation(ctx,pitchesNow,beats,width * 0.62,top,gap,bass,Boolean(event));
-  el['staff-label'].textContent = octaveName() + (event ? ' · ' + pitchesNow.map(noteName).join(' + ') : '');
-  el['live-score'].setAttribute('aria-label',pitchesNow.map(noteName).join(', ') + ', ' + octaveName() + ', ' + durations[beats][1]);
+  drawStaff(ctx,12,width - 12,top,gap,bass);
+  if (notes.length) drawNotation(ctx,notes,beats,width * 0.62,top,gap,bass,active);
+  el['staff-label'].textContent = octaveName() + (notes.length ? ' · ' + notes.map(noteName).join(' + ') : '');
+  el['live-score'].setAttribute('aria-label',notes.length ?
+    notes.map(noteName).join(', ') + ', ' + durations[beats][1] + (active ? ', звучит' : ', следующая нота') : 'Пауза');
 }
 function scoreBars() {
   if (level === 2) return melodies[el.melody.selectedIndex].map(bar =>
     bar.map(([pitch,beats]) => ({pitches:[pitch + octaveOffset],beats})));
   return chords.map(([notes]) => [{pitches:notes.map(pitch => pitch + octaveOffset),beats:4}]);
 }
-function updateFullScore(active) {
-  if (level !== 2 && level !== 3) return;
+function updateFullScore(event,active) {
   const signature = level + '/' + el.melody.selectedIndex + '/' + octaveOffset + '/' +
-    (active?.preview ? active.at : 'idle') + '/' + el['full-score'].clientWidth;
-  if (signature === fullScoreSignature) return;
-  fullScoreSignature = signature;
+    (active && event ? event.barNumber + ',' + event.noteNumber : 'idle') + '/' + el['live-score'].clientWidth;
+  if (signature === scoreSignature) return;
+  scoreSignature = signature;
   const bars = scoreBars();
-  const {ctx,width,height} = fitCanvas(el['full-score']);
+  const {ctx,width,height} = fitCanvas(el['live-score']);
   const bass = octaveOffset < 0;
   const gap = Math.min(11,(height - 35) / 7);
   const top = (height - gap * 4) / 2;
   const meter = level === 2 ? melodyMeters[el.melody.selectedIndex] : 4;
-  const scoreStart = 72;
+  const scoreStart = 70;
   const barWidth = (width - scoreStart - 10) / 4;
   drawStaff(ctx,4,width - 8,top,gap,bass,meter);
-  const previewEvents = events.filter(event => event.preview);
-  bars.forEach((bar,i) => {
+  bars.forEach((bar,barNumber) => {
     let beat = 0;
-    const before = bars.slice(0,i).reduce((sum,notes) => sum + notes.length,0);
-    bar.forEach((note,index) => {
-      const x = scoreStart + i * barWidth + 12 + beat / meter * Math.max(0,barWidth - 21);
-      drawNotation(ctx,note.pitches,note.beats,x,top,gap,bass,
-        Boolean(active?.preview && previewEvents[before + index] === active));
+    bar.forEach((note,noteNumber) => {
+      const x = scoreStart + barNumber * barWidth + 10 + beat / meter * Math.max(0,barWidth - 18);
+      const sounding = active && event?.barNumber === barNumber && (level === 4 || event.noteNumber === noteNumber);
+      drawNotation(ctx,note.pitches,note.beats,x,top,gap,bass,Boolean(sounding));
       beat += note.beats;
     });
-    const lineX = scoreStart + (i+1) * barWidth;
-    ctx.strokeStyle = '#636778'; ctx.lineWidth = i === 3 ? 2 : 0.9;
-    ctx.beginPath(); ctx.moveTo(lineX,top); ctx.lineTo(lineX,top + 4*gap); ctx.stroke();
+    const x = scoreStart + (barNumber + 1) * barWidth;
+    ctx.strokeStyle = '#636778'; ctx.lineWidth = barNumber === 3 ? 2 : 0.9;
+    ctx.beginPath(); ctx.moveTo(x,top); ctx.lineTo(x,top + 4 * gap); ctx.stroke();
   });
-  el['score-title'].textContent = level === 2 ? melodyNames[el.melody.selectedIndex] + ' · ' + meter + '/4 · учебная мелодия' : 'Аккорды перед разбором';
-  el['full-score'].setAttribute('aria-label',bars.map((bar,i) => 'Такт ' + (i+1) + ' ' +
-    bar.map(note => note.pitches.map(noteName).join(' + ') + ', ' + durations[note.beats][1]).join('; ')).join('. '));
+  el['staff-label'].textContent = level === 2 ? melodyNames[el.melody.selectedIndex] + ' · ' + meter + '/4 · ' + octaveName() :
+    'До–Ми–Соль → До–Фа–Ля → Си–Ре–Соль → До–Ми–Соль';
+  const description = bars.map((bar,i) => 'Такт ' + (i + 1) + ' ' + bar.map(note => note.pitches.map(noteName).join(' + ')).join(', ')).join('. ');
+  el['live-score'].setAttribute('aria-label',description + (active && event ? '. Звучит такт ' + (event.barNumber + 1) : ''));
 }
-function makeBeatGrid(sequence,countIn = 0) {
+function makeBeatGrid(sequence) {
   const grid = [];
-  const firstBpm = sequence[0]?.bpm ?? 45;
-  for (let beat = -countIn; beat < 0; beat++) grid.push({at:beat * 60 / firstBpm,number:beat+countIn});
   for (const event of sequence) {
-    for (let beat = Math.ceil(event.beatNumber - 0.00001); beat < event.beatNumber + event.beats - 0.00001; beat++) {
-      grid.push({at:event.at + (beat-event.beatNumber) * 60 / event.bpm,number:beat});
+    for (let beat = Math.ceil(event.rhythmBeat - 0.00001); beat < event.rhythmBeat + event.beats - 0.00001; beat++) {
+      grid.push({
+        at:event.at + (beat - event.rhythmBeat) * 60 / event.bpm,
+        event, number:beat + 1
+      });
     }
   }
   return grid;
 }
+
 function stopMetronome() {
   clearTimeout(metroTimer);
   metroTimer = 0;
@@ -805,10 +821,10 @@ function stopMetronome() {
   }
   metroVoices.clear();
 }
-function clickMetronome(at,strong) {
+function clickMetronome(at) {
   const oscillator = audio.createOscillator();
   const gain = audio.createGain();
-  oscillator.frequency.value = strong ? 1250 : 850;
+  oscillator.frequency.value = 850;
   gain.gain.setValueAtTime(0,at);
   gain.gain.linearRampToValueAtTime(0.22,at + 0.002);
   gain.gain.exponentialRampToValueAtTime(0.001,at + 0.045);
@@ -832,7 +848,7 @@ function startMetronome() {
       while (nextTick < beatGrid.length && beatGrid[nextTick].at <= now + 0.12 * speedMultiplier) {
         const beat = beatGrid[nextTick++];
         if (beat.at >= now - 0.045 * speedMultiplier) {
-          clickMetronome(audio.currentTime + Math.max(0,(beat.at - now) / speedMultiplier),beat.number % 4 === 0);
+          clickMetronome(audio.currentTime + Math.max(0,(beat.at - now) / speedMultiplier));
         }
       }
     }
@@ -842,8 +858,9 @@ function startMetronome() {
 }
 function updateBeatDisplay(now) {
   if (level !== 1) return;
-  const beat = beatGrid.findLast(tick => tick.at <= now);
-  el['beat-count'].textContent = beat ? 'Доля ' + (beat.number % 4 + 1) + ' / 4' : '1 · 2 · 3 · 4';
+  const event = soundingEvent(now);
+  const tick = event ? beatGrid.findLast(beat => beat.at <= now && beat.event.rhythmGroup === event.rhythmGroup) : null;
+  el['beat-count'].textContent = tick ? 'Удар ' + tick.number : 'Пауза';
 }
 el.octave.addEventListener('change',() => {
   reset();
@@ -851,7 +868,6 @@ el.octave.addEventListener('change',() => {
   octaveOffset = allOctaves ? 0 : Number(el.octave.value);
   buildKeyboard();
   if (midiAccess) refreshMidi();
-  scoreSignature = fullScoreSignature = '';
   reset();
 });
 el.metronome.addEventListener('click',() => {
@@ -862,20 +878,14 @@ el.metronome.addEventListener('click',() => {
   else stopMetronome();
 });
 el['skip-preview'].addEventListener('click',() => {
-  if (mode !== 'playing' || !events[cursor]?.preview) return;
-  stopGuide();
-  cancelAnimationFrame(animation);
-  cursor = events.findIndex(event => !event.preview);
-  origin = performance.now() / 1000 - (events[cursor].at - 3 * speedMultiplier) / speedMultiplier;
-  lastCount = undefined;
-  updateScore();
-  render();
+  if (mode === 'playing' && playingPreview) startPractice();
 });
 if (typeof ResizeObserver !== 'undefined') {
   new ResizeObserver(() => {
-    scoreSignature = fullScoreSignature = '';
-    updateNotation(activeGuide);
-    updateFullScore(activeGuide);
+    scoreSignature = '';
+    const now = mode === 'paused' ? pausedAt : clock();
+    const active = mode === 'playing' || mode === 'paused' ? soundingEvent(now) : null;
+    updateNotation(active ?? approachingEvent(now),Boolean(active));
   }).observe(main);
 }
 
@@ -1018,7 +1028,7 @@ function press(pitch, source) {
   if (alreadyPressed) return;
   keyNodes.get(pitch)?.classList.add('pressed');
   soundOn(pitch);
-  updateNotation({pitches:[...new Set(sources.values())],beats:1});
+  updateNotation({pitches:[...new Set(sources.values())],beats:1},true);
   grade(pitch);
 }
 function release(source) {
@@ -1029,7 +1039,7 @@ function release(source) {
   keyNodes.get(pitch)?.classList.remove('pressed');
   soundOff(pitch);
   const held = [...new Set(sources.values())];
-  updateNotation(held.length ? {pitches:held,beats:1} : null);
+  updateNotation(held.length ? {pitches:held,beats:1} : null,held.length > 0);
   if (mode !== 'playing') return;
   const event = events[cursor];
   if (!event?.pressed.has(pitch)) return;
@@ -1128,7 +1138,7 @@ el.speed.addEventListener('change',() => {
   const time = clock();
   speedMultiplier = Number(el.speed.value);
   if (mode === 'playing') {
-    origin = performance.now() / 1000 - time / speedMultiplier;
+    if (time >= 0) origin = performance.now() / 1000 - time / speedMultiplier;
     startMetronome();
   }
   const event = events[cursor] ?? events.at(-1);
@@ -1151,9 +1161,9 @@ el.fullscreen.addEventListener('click',async () => {
 });
 document.addEventListener('fullscreenchange',() => {
   el.fullscreen.textContent = document.fullscreenElement ? 'Свернуть' : 'На весь экран';
-  scoreSignature = fullScoreSignature = '';
-  updateNotation(activeGuide);
-  updateFullScore(activeGuide);
+  scoreSignature = '';
+  const active = mode === 'playing' ? soundingEvent(clock()) : activeGuide;
+  updateNotation(active,Boolean(active));
 });
 window.addEventListener('keydown',event => {
   if (event.repeat || event.metaKey || event.ctrlKey || event.altKey || event.target.tagName === 'SELECT') return;
