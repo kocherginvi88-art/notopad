@@ -34,7 +34,7 @@ select{max-width:43%;color:var(--text)}
 .metrics span{white-space:nowrap}.metrics strong{color:var(--text);font-variant-numeric:tabular-nums;margin-left:4px}
 .buttons{display:flex;align-items:center;gap:6px}.primary{border-color:transparent;font-weight:750;background:var(--accent);color:var(--ink);min-width:92px}.primary:hover{background:#ded4ff;border-color:transparent}
 .progress{height:3px;background:#333b52}.progress div{height:100%;width:0;background:var(--accent)}
-.field{height:clamp(225px,42vh,460px);position:relative;overflow:hidden;background:linear-gradient(180deg,#141c2a,#1b2340);isolation:isolate}
+.field{height:clamp(300px,58vh,740px);position:relative;overflow:hidden;background:linear-gradient(180deg,#141c2a,#1b2340);isolation:isolate}
 .lanes{position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 calc(100% / 7 - 1px),#7d86a425 calc(100% / 7 - 1px) calc(100% / 7)),repeating-linear-gradient(0deg,transparent 0 47px,#7d86a41c 47px 48px)}
 .sharp-lane{position:absolute;inset-block:0;width:5%;transform:translateX(-50%);background:#0a112638;border-inline:1px dashed #5b62802d}
 .notes{position:absolute;inset:0;pointer-events:none}
@@ -46,7 +46,7 @@ select{max-width:43%;color:var(--text)}
 .badge{position:absolute;left:10px;top:10px;z-index:4;padding:5px 8px;border-radius:6px;background:#1c2539e8;color:var(--muted);font-size:11px;font-weight:650}
 .overlay{position:absolute;z-index:5;left:50%;top:49%;transform:translate(-50%,-50%);width:min(330px,88%);text-align:center;background:#192235ed;border:1px solid #71658c;border-radius:15px;padding:17px 13px;box-shadow:0 10px 30px #0b102880;pointer-events:none}
 .overlay strong{display:block;font-size:21px;letter-spacing:-.025em}.overlay p{color:#d3cce7;font-size:12px;line-height:1.5;margin-top:5px}.overlay[hidden],select[hidden],button[hidden],.badge[hidden]{display:none}
-.keys{height:clamp(135px,27vh,246px);position:relative;background:#151826;touch-action:none;user-select:none;-webkit-user-select:none;padding-bottom:4px}
+.keys{height:clamp(110px,20vh,180px);position:relative;background:#151826;touch-action:none;user-select:none;-webkit-user-select:none;padding-bottom:4px}
 .key{position:absolute;left:var(--left);margin:0;top:0;height:calc(100% - 4px);width:calc(100% / 7);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;padding:0 1px 11px;color:#20263c;background:linear-gradient(180deg,#e1e4f3,#fafaff 56%,#e7e8f3);border:1px solid #374058;border-top:0;border-bottom:4px solid #abb5ce;border-radius:0 0 9px 9px;font-size:clamp(10px,1.6vw,15px);font-weight:770}
 .key kbd{font:600 10px system-ui;color:#4b5474;padding:2px 5px;background:#d6dbeb;border-radius:4px}
 .key.sharp{z-index:2;transform:translateX(-50%);width:8.7%;height:60%;background:linear-gradient(180deg,#434968,#161e34 44%,#111629);color:#f0edff;border:1px solid #59617d;border-top:0;border-bottom:5px solid #080e1e;box-shadow:0 5px 10px #10152175;padding-bottom:7px;font-size:clamp(8px,1.2vw,12px)}
@@ -64,7 +64,7 @@ select{max-width:43%;color:var(--text)}
 .lesson-mode .note{font-size:clamp(10px,1.75vw,20px)}
 .lesson-mode .key.active-note{background:#a3efcc;border-bottom-color:#68b698;color:#112b24}
 .lesson-mode .target-label{font-size:11px}
-.lesson-mode .field{height:clamp(180px,42vh,470px)}
+
 .main:fullscreen{background:var(--bg);overflow:auto;padding:12px min(3vw,36px)}
 .main:fullscreen .field{height:max(130px,calc(100dvh - clamp(115px,28vh,270px) - 185px))}
 .main:fullscreen .keys{height:clamp(115px,28vh,270px)}
@@ -82,7 +82,7 @@ select{max-width:43%;color:var(--text)}
 .heading-row .intro{margin-bottom:0}
 .live-staff{width:100%;background:#f7f5ef;color:#252a39;border-radius:10px;overflow:hidden;border:1px solid #c7c3d8}
 .staff-label{font-size:11px;padding:6px 10px 0;min-height:20px}
-#live-score{display:block;width:100%;height:116px}
+#live-score{display:block;width:100%;height:96px}
 .score-overview .heading-row{grid-template-columns:minmax(0,1fr)}
 .score-overview #live-score{height:140px;min-width:540px}
 .score-overview .live-staff{overflow-x:auto}
@@ -92,13 +92,21 @@ select{max-width:43%;color:var(--text)}
 .rhythm-legend{font-size:12px;line-height:1.6;padding:6px 12px;color:#d8cffa;border-bottom:1px solid var(--line)}
 .main:fullscreen{height:100dvh;display:flex;flex-direction:column;overflow:auto;gap:0}
 .main:fullscreen .stage{display:flex;flex:1;flex-direction:column;min-height:280px}
-.main:fullscreen .field{height:auto;min-height:110px;flex:1}
-.main:fullscreen .keys{height:clamp(115px,30vh,280px);flex:none}
+.main:fullscreen .field{height:auto;min-height:160px;flex:1}
+.main:fullscreen .keys{height:clamp(100px,21vh,190px);flex:none}
 .main:fullscreen .heading-row{flex:none}
 @media(max-width:600px){.heading-row{grid-template-columns:minmax(0,1fr);gap:8px}.live-staff{max-width:250px;justify-self:end}.score-overview .live-staff{max-width:none}.mode-controls .control{font-size:11px;padding:7px}.rhythm-legend{font-size:10px}.tools{flex-wrap:wrap;justify-content:flex-end}.key .octave-name{font-size:8px}.heading-row .intro p{font-size:11px}}
 .audio-credit{font-size:10px;line-height:1.4;color:var(--muted);margin-top:10px}
 .audio-credit a{color:inherit;text-underline-offset:2px}
 .main:fullscreen .audio-credit{display:none}
+.tempo-control{display:flex;align-items:center;gap:10px;min-width:230px;max-width:340px;flex:1;font-size:13px;color:var(--muted)}
+.tempo-control input{flex:1;min-width:80px;accent-color:var(--accent);cursor:pointer}
+.tempo-control output{color:var(--text);min-width:42px;text-align:right;font-variant-numeric:tabular-nums}
+.tempo-control input:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+.note-exercises{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.note-exercises .control{font-size:12px;padding:7px 9px}
+.note-exercises [aria-pressed=true]{background:#332c4a;border-color:#8274aa;color:var(--accent)}
+@media(max-height:600px){.main:fullscreen .field{min-height:110px}.main:fullscreen .keys{height:100px}}
 </style>
 </head>
 <body>
@@ -114,7 +122,7 @@ select{max-width:43%;color:var(--text)}
 <div class="layout">
 <nav aria-label="Уровни">
   <span class="nav-title">Уровни</span>
-  <button class="level" type="button" data-level="0" aria-pressed="true"><b>1</b><span data-short="Ноты">Знакомство с нотами<small>Белые и чёрные клавиши</small></span></button>
+  <button class="level" type="button" data-level="0" aria-pressed="true"><b>1</b><span data-short="Ноты">Знакомство с нотами<small>Три упражнения · 1-я октава</small></span></button>
   <button class="level" type="button" data-level="1" aria-pressed="false"><b>2</b><span data-short="Ритм">Ритм и длительности<small>От восьмых до целых</small></span></button>
   <button class="level" type="button" data-level="2" aria-pressed="false"><b>3</b><span data-short="Мелодии">Мелодии<small>Четыре такта</small></span></button>
   <button class="level" type="button" data-level="3" aria-pressed="false"><b>4</b><span data-short="Аккорды">Сборка аккордов<small>По нотам и вместе</small></span></button>
@@ -128,19 +136,26 @@ select{max-width:43%;color:var(--text)}
       <option value="-12">Малая октава</option><option value="0" selected>1-я октава</option>
       <option value="12">2-я октава</option><option value="all">Три октавы</option>
     </select>
+    <label class="tempo-control" for="speed">
+      <span>Темп</span>
+      <input id="speed" type="range" min="0.2" max="1.5" step="0.01" value="1" aria-label="Темп упражнения" aria-valuetext="100%">
+      <output id="speed-value" for="speed">100%</output>
+    </label>
     <div class="teacher-controls" id="teacher">
-      <select class="control" id="speed" aria-label="Скорость упражнения">
-        <option value="0.4">Темп 40%</option><option value="0.45">Темп 45%</option>
-        <option value="0.5">Темп 50%</option><option value="0.65">Темп 65%</option><option value="0.8">Темп 80%</option>
-        <option value="1" selected>Темп 100%</option><option value="1.15">Темп 115%</option>
-      </select>
       <button class="control" id="guide" type="button" aria-pressed="false">Звуковой пример</button>
       <button class="control" id="fullscreen" type="button">На весь экран</button>
     </div>
   </div>
   <div class="heading-row">
     <div class="intro">
-      <div><h2 id="title">Знакомство с нотами</h2><p id="description"></p></div>
+      <div>
+        <h2 id="title">Знакомство с нотами</h2><p id="description"></p>
+        <div class="note-exercises" id="note-exercises" role="group" aria-label="Упражнения первой октавы">
+          <button class="control" id="note-ordered" type="button" aria-pressed="true">По порядку ↑↓</button>
+          <button class="control" id="note-white" type="button" aria-pressed="false">Белые случайно</button>
+          <button class="control" id="note-chromatic" type="button" aria-pressed="false">Белые и чёрные</button>
+        </div>
+      </div>
       <select class="control" id="melody" aria-label="Выбрать мелодию" hidden>
         <option>Вальс · учебный</option><option>Марш · учебный</option><option>Танец · учебный</option>
       </select>
@@ -214,6 +229,12 @@ const sources = new Map();
 const voices = new Map();
 const main = document.querySelector('main');
 let inLesson = true, guideEnabled = false, guideSound = null, activeGuide = null;
+let noteExercise = 0;
+const noteExercises = [
+  {id:'ordered',description:'Первая октава · от До до Си вверх и обратно до До.'},
+  {id:'white',description:'Первая октава · белые клавиши в случайном порядке.'},
+  {id:'chromatic',description:'Первая октава · белые и чёрные клавиши в случайном порядке.'}
+];
 let speedMultiplier = 1, octaveOffset = 0, allOctaves = false;
 let metronomeEnabled = true, metroTimer = 0, nextTick = 0, beatGrid = [];
 const metroVoices = new Set();
@@ -292,10 +313,11 @@ function buildKeyboard() {
 
 function makeExercise(chosenLevel, melodyIndex, rng = Math.random) {
   const sequence = [];
+  const pitchOffset = chosenLevel === 0 ? 0 : octaveOffset;
   let time = 0, bpm = lessons[chosenLevel][2], groupNumber = 0;
   const add = (notes, beats, hold, phase, details = {}) => {
     sequence.push({
-      pitches:notes.map(pitch => pitch + octaveOffset), beats,
+      pitches:notes.map(pitch => pitch + pitchOffset), beats,
       duration:hold ? 60 / bpm * beats : 0, at:time, bpm, phase,
       preview:false, barNumber:0, noteNumber:0, rhythmGroup:groupNumber, rhythmBeat:0,
       ...details, state:'waiting', pressed:new Map(), nodes:[]
@@ -315,9 +337,19 @@ function makeExercise(chosenLevel, melodyIndex, rng = Math.random) {
     return result;
   };
   if (chosenLevel === 0) {
-    randomize([...pitches.keys(),...pitches.keys()]).forEach((note,i) => {
+    const whiteNotes = [0,2,4,5,7,9,11];
+    let notes;
+    if (noteExercise === 0) {
+      notes = [...whiteNotes,...whiteNotes.slice(0,-1).reverse()];
+    } else if (noteExercise === 1) {
+      notes = randomize(Array.from({length:4},() => whiteNotes).flat());
+    } else {
+      notes = randomize([...pitches.keys(),...pitches.keys()]);
+    }
+    notes.forEach((note,i) => {
       bpm = lessons[0][2] + 5 * Math.floor(i / 4);
-      add([note],1,false,'Нота ' + (i + 1) + ' из 24');
+      const direction = noteExercise === 0 ? (i < whiteNotes.length ? 'Вверх · ' : 'Вниз · ') : '';
+      add([note],1,false,direction + 'Нота ' + (i + 1) + ' из ' + notes.length);
     });
   }
   if (chosenLevel === 1) {
@@ -442,6 +474,18 @@ function reset() {
   clearKeys();
   stopGuide();
   setGuideHighlight(null);
+  const range = level === 0 ? '0' : el.octave.value;
+  const nextAllOctaves = range === 'all';
+  const nextOffset = nextAllOctaves ? 0 : Number(range);
+  if (allOctaves !== nextAllOctaves || octaveOffset !== nextOffset) {
+    allOctaves = nextAllOctaves;
+    octaveOffset = nextOffset;
+    buildKeyboard();
+    if (midiAccess) refreshMidi();
+  }
+  el.octave.hidden = level === 0;
+  el['note-exercises'].hidden = level !== 0;
+  noteExercises.forEach((exercise,index) => el['note-' + exercise.id].setAttribute('aria-pressed',index === noteExercise));
   events = [];
   queuedPractice = [];
   playingPreview = false;
@@ -450,7 +494,7 @@ function reset() {
   updateScore();
   el.notes.replaceChildren();
   el.title.textContent = lessons[level][0];
-  el.description.textContent = level === 0 ? 'Случайные ноты · ' + octaveName() + ' · постепенное ускорение.' : lessons[level][1];
+  el.description.textContent = level === 0 ? noteExercises[noteExercise].description : lessons[level][1];
   el.tempo.textContent = Math.round(lessons[level][2] * speedMultiplier) + ' BPM';
   el.melody.hidden = level !== 2;
   el.phase.hidden = true;
@@ -893,14 +937,15 @@ function makeBeatGrid(sequence) {
   return grid;
 }
 
-function stopMetronome() {
+function stopMetronome(preserveSounding = false) {
   clearTimeout(metroTimer);
   metroTimer = 0;
   for (const voice of metroVoices) {
+    if (preserveSounding && voice.at <= audio?.currentTime) continue;
     voice.gain.disconnect();
     try { voice.oscillator.stop(); } catch {}
+    metroVoices.delete(voice);
   }
-  metroVoices.clear();
 }
 function clickMetronome(at) {
   const oscillator = audio.createOscillator();
@@ -910,17 +955,18 @@ function clickMetronome(at) {
   gain.gain.linearRampToValueAtTime(0.22,at + 0.002);
   gain.gain.exponentialRampToValueAtTime(0.001,at + 0.045);
   oscillator.connect(gain).connect(audio.destination);
-  const voice = {oscillator,gain};
+  const voice = {oscillator,gain,at};
   metroVoices.add(voice);
   oscillator.onended = () => { gain.disconnect(); metroVoices.delete(voice); };
   oscillator.start(at);
   oscillator.stop(at + 0.055);
 }
-function startMetronome() {
-  stopMetronome();
+function startMetronome(afterTempoChange = false) {
+  stopMetronome(afterTempoChange);
   if (mode !== 'playing' || level !== 1 || !metronomeEnabled || !enabledSound) return;
   warmAudio();
-  nextTick = beatGrid.findIndex(beat => beat.at >= clock() - 0.012);
+  const cutoff = clock() + (afterTempoChange ? 0.000001 : -0.012);
+  nextTick = beatGrid.findIndex(beat => beat.at >= cutoff);
   if (nextTick < 0) return;
   function schedule() {
     if (mode !== 'playing') return;
@@ -943,13 +989,13 @@ function updateBeatDisplay(now) {
   const tick = event ? beatGrid.findLast(beat => beat.at <= now && beat.event.rhythmGroup === event.rhythmGroup) : null;
   el['beat-count'].textContent = tick ? 'Удар ' + tick.number : 'Пауза';
 }
-el.octave.addEventListener('change',() => {
-  reset();
-  allOctaves = el.octave.value === 'all';
-  octaveOffset = allOctaves ? 0 : Number(el.octave.value);
-  buildKeyboard();
-  if (midiAccess) refreshMidi();
-  reset();
+el.octave.addEventListener('change',reset);
+noteExercises.forEach((exercise,index) => {
+  el['note-' + exercise.id].addEventListener('click',() => {
+    if (noteExercise === index) return;
+    noteExercise = index;
+    reset();
+  });
 });
 el.metronome.addEventListener('click',() => {
   metronomeEnabled = !metronomeEnabled;
@@ -1243,7 +1289,7 @@ el['sound-test'].addEventListener('click', () => {
 });
 function setLesson(value) {
   inLesson = value;
-  speedMultiplier = value ? Number(el.speed.value) : 1;
+  speedMultiplier = Number(el.speed.value);
   main.classList.toggle('lesson-mode',value);
   el['lesson-mode'].setAttribute('aria-pressed',value);
   el['practice-mode'].setAttribute('aria-pressed',!value);
@@ -1255,16 +1301,23 @@ function setLesson(value) {
 }
 el['lesson-mode'].addEventListener('click',() => { if (!inLesson) setLesson(true); });
 el['practice-mode'].addEventListener('click',() => { if (inLesson) setLesson(false); });
-el.speed.addEventListener('change',() => {
+function changeTempo() {
+  const nextSpeed = Number(el.speed.value);
+  const percent = Math.round(nextSpeed * 100) + '%';
+  el['speed-value'].textContent = percent;
+  el.speed.setAttribute('aria-valuetext',percent);
+  if (nextSpeed === speedMultiplier) return;
   const time = clock();
-  speedMultiplier = Number(el.speed.value);
+  speedMultiplier = nextSpeed;
   if (mode === 'playing') {
     if (time >= 0) origin = performance.now() / 1000 - time / speedMultiplier;
-    startMetronome();
+    startMetronome(true);
   }
-  const event = events[cursor] ?? events.at(-1);
+  const event = soundingEvent(time) ?? events[cursor] ?? events.at(-1);
   el.tempo.textContent = Math.round((event?.bpm ?? lessons[level][2]) * speedMultiplier) + ' BPM';
-});
+}
+el.speed.addEventListener('input',changeTempo);
+el.speed.addEventListener('change',changeTempo);
 el.guide.addEventListener('click',() => {
   guideEnabled = !guideEnabled;
   el.guide.setAttribute('aria-pressed',guideEnabled);
