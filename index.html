@@ -107,20 +107,64 @@ select{max-width:43%;color:var(--text)}
 .note-exercises .control{font-size:12px;padding:7px 9px}
 .note-exercises [aria-pressed=true]{background:#332c4a;border-color:#8274aa;color:var(--accent)}
 @media(max-height:600px){.main:fullscreen .field{min-height:110px}.main:fullscreen .keys{height:100px}}
+.app{height:100vh;height:100dvh;max-width:1600px;padding:8px 12px}
+.layout{display:block;height:100%}
+.main{height:100%;min-height:0;display:flex;flex-direction:column}
+.main:fullscreen{height:100dvh;padding:8px 12px}
+.heading-row{display:flex;justify-content:flex-end;flex:none;gap:0;margin:0 0 6px}
+.live-staff{max-width:250px}
+#live-score{height:86px}
+.score-overview .heading-row{display:block}
+.score-overview .live-staff{max-width:none}
+.score-overview #live-score{height:116px}
+.stage,.main:fullscreen .stage{display:flex;flex:1;flex-direction:column;min-height:0}
+.field,.main:fullscreen .field{height:auto;min-height:100px;flex:1}
+.keys,.main:fullscreen .keys{height:clamp(100px,20vh,180px);flex:none}
+.lesson-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;padding-top:8px;flex:none}
+.lesson-toolbar .metrics{gap:12px}
+.lesson-toolbar .buttons{gap:6px}
+#feedback{font-size:12px;line-height:1.4;color:#dcd5fa;flex:1;min-width:150px}
+#feedback.ok{color:var(--ok)}
+#feedback.error{color:var(--error)}
+.settings-panel{position:fixed;z-index:20;left:0;top:0;width:min(430px,100%);height:100vh;height:100dvh;padding:18px;background:#17202f;border-right:1px solid var(--line);box-shadow:15px 0 60px #0009;overflow-y:auto}
+.settings-panel .settings-heading{margin:0 0 16px;gap:8px}
+.settings-panel h1{font-size:22px}
+.settings-panel .tools{flex-wrap:wrap;margin-bottom:16px}
+.settings-panel nav{display:block;padding:10px;margin-bottom:16px}
+.settings-panel .nav-title{display:block}
+.settings-panel .level{justify-content:flex-start;flex-direction:row;padding:9px 8px;margin:3px 0}
+.settings-panel .level span{display:grid;font-size:13px}
+.settings-panel .level span::after{content:none}
+.settings-panel .level small{display:block}
+.settings-panel .intro{display:block;margin-bottom:16px}
+.settings-panel h2{font-size:22px}
+.settings-panel .intro p{font-size:13px}
+.settings-panel select{max-width:100%}
+.settings-panel #melody{margin-top:12px}
+.settings-panel .mode-controls{display:flex;gap:10px}
+.settings-panel .tempo-control{min-width:0;max-width:none;width:100%;flex-basis:100%}
+.settings-panel .teacher-controls{width:100%}
+.settings-panel .rhythm-legend{padding:8px 0;margin-top:8px;border:0}
+.settings-panel #input-help{font-size:11px;line-height:1.5;color:var(--muted);margin-top:18px}
+.settings-panel .audio-credit,.main:fullscreen .settings-panel .audio-credit{display:block;margin-top:14px}
+@media(max-width:600px){.app,.main:fullscreen{padding:6px}.heading-row{margin-bottom:4px}.lesson-toolbar{gap:6px;padding-top:6px}.lesson-toolbar .control{font-size:12px;padding:7px 9px}.lesson-toolbar .metrics{font-size:11px;gap:8px}#feedback{font-size:11px}.settings-panel{padding:14px}}
 </style>
 </head>
 <body>
 <div class="app">
-<header>
+<div class="layout">
+<main class="main">
+  <aside class="settings-panel" id="settings-panel" aria-label="Настройки тренажёра" hidden>
+    <header class="settings-heading">
   <div class="brand"><div class="brand-mark" aria-hidden="true">♫</div><div><h1>Нотопад</h1><p>Тренажёр фортепиано</p></div></div>
-  <div class="tools">
+      <button class="control" id="settings-close" type="button">Закрыть</button>
+    </header>
+    <div class="tools">
     <button class="control midi" type="button" id="midi" hidden>MIDI</button>
     <button class="control" type="button" id="sound" aria-pressed="true">Звук вкл.</button>
     <button class="control" type="button" id="sound-test">Проверить звук</button>
   </div>
-</header>
-<div class="layout">
-<nav aria-label="Уровни">
+    <nav aria-label="Уровни">
   <span class="nav-title">Уровни</span>
   <button class="level" type="button" data-level="0" aria-pressed="true"><b>1</b><span data-short="Ноты">Знакомство с нотами<small>Три упражнения · 1-я октава</small></span></button>
   <button class="level" type="button" data-level="1" aria-pressed="false"><b>2</b><span data-short="Ритм">Ритм и длительности<small>От восьмых до целых</small></span></button>
@@ -128,7 +172,19 @@ select{max-width:43%;color:var(--text)}
   <button class="level" type="button" data-level="3" aria-pressed="false"><b>4</b><span data-short="Аккорды">Сборка аккордов<small>По нотам и вместе</small></span></button>
   <button class="level" type="button" data-level="4" aria-pressed="false"><b>5</b><span data-short="Цепочка">Цепочка аккордов<small>Четыре аккорда подряд</small></span></button>
 </nav>
-<main class="main">
+    <div class="intro">
+      <div>
+        <h2 id="title">Знакомство с нотами</h2><p id="description"></p>
+        <div class="note-exercises" id="note-exercises" role="group" aria-label="Упражнения первой октавы">
+          <button class="control" id="note-ordered" type="button" aria-pressed="true">По порядку ↑↓</button>
+          <button class="control" id="note-white" type="button" aria-pressed="false">Белые случайно</button>
+          <button class="control" id="note-chromatic" type="button" aria-pressed="false">Белые и чёрные</button>
+        </div>
+      </div>
+      <select class="control" id="melody" aria-label="Выбрать мелодию" hidden>
+        <option>Вальс · учебный</option><option>Марш · учебный</option><option>Танец · учебный</option>
+      </select>
+    </div>
   <div class="mode-controls" aria-label="Режим тренажёра">
     <button class="control" id="lesson-mode" type="button" aria-pressed="true">Урок</button>
     <button class="control" id="practice-mode" type="button" aria-pressed="false">Самостоятельно</button>
@@ -143,38 +199,25 @@ select{max-width:43%;color:var(--text)}
     </label>
     <div class="teacher-controls" id="teacher">
       <button class="control" id="guide" type="button" aria-pressed="false">Звуковой пример</button>
-      <button class="control" id="fullscreen" type="button">На весь экран</button>
+
     </div>
   </div>
+    <section id="rhythm-settings" hidden aria-label="Настройки ритма">
+      <button class="control" id="metronome" type="button" aria-pressed="true">Метроном вкл.</button>
+      <p id="rhythm-legend" class="rhythm-legend" hidden>Целая — 4 удара · половинная — 2 · четверть — 1 · две восьмые — 1 удар</p>
+    </section>
+    <p id="input-help">Мышь · Сенсорный экран · Компьютерная клавиатура</p>
+  <p class="audio-credit">Фортепиано — <a href="https://github.com/Tonejs/audio/tree/master/salamander" target="_blank" rel="noopener">Salamander Grand Piano</a>,
+    Alexander Holm · <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>.
+    Высота, громкость и затухание адаптированы для тренажёра.</p>
+  </aside>
   <div class="heading-row">
-    <div class="intro">
-      <div>
-        <h2 id="title">Знакомство с нотами</h2><p id="description"></p>
-        <div class="note-exercises" id="note-exercises" role="group" aria-label="Упражнения первой октавы">
-          <button class="control" id="note-ordered" type="button" aria-pressed="true">По порядку ↑↓</button>
-          <button class="control" id="note-white" type="button" aria-pressed="false">Белые случайно</button>
-          <button class="control" id="note-chromatic" type="button" aria-pressed="false">Белые и чёрные</button>
-        </div>
-      </div>
-      <select class="control" id="melody" aria-label="Выбрать мелодию" hidden>
-        <option>Вальс · учебный</option><option>Марш · учебный</option><option>Танец · учебный</option>
-      </select>
-    </div>
     <aside class="live-staff" aria-label="Нотный стан" id="staff">
       <div class="staff-label" id="staff-label">1-я октава</div>
       <canvas id="live-score" role="img" aria-label="Нотный стан"></canvas>
     </aside>
   </div>
   <section class="stage" aria-label="Игровое поле">
-    <div class="stage-head">
-      <div class="metrics"><span>Темп <strong id="tempo">46 BPM</strong></span><span id="hit-count">Точно <strong id="hits">0</strong></span><span id="error-count">Ошибки <strong id="errors">0</strong></span></div>
-      <div class="rhythm-tools" id="rhythm-tools" hidden>
-        <button class="control" id="metronome" type="button" aria-pressed="true">Метроном вкл.</button>
-        <span id="beat-count" aria-label="Удары метронома">Пауза</span>
-      </div>
-      <div class="buttons"><button class="control" id="skip-preview" type="button" hidden>К разбору</button><button class="control" type="button" id="restart" aria-label="В начало" title="В начало" hidden>↺</button><button class="control primary" type="button" id="play">Начать</button></div>
-    </div>
-    <p id="rhythm-legend" class="rhythm-legend" hidden>Целая — 4 удара · половинная — 2 · четверть — 1 · две восьмые — 1 удар</p>
     <div class="progress" role="progressbar" aria-label="Прогресс упражнения" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="progress"></div></div>
     <div class="field" id="field">
       <div class="lanes" id="lanes"></div><div class="notes" id="notes" aria-hidden="true"></div>
@@ -184,10 +227,17 @@ select{max-width:43%;color:var(--text)}
     </div>
     <div class="keys" id="keys" aria-label="Клавиши первой октавы"></div>
   </section>
-  <div class="under"><p id="feedback" role="status">Нажмите на клавиши, чтобы услышать звук.</p><p id="input-help">Мышь · Сенсорный экран · Компьютерная клавиатура</p></div>
-  <p class="audio-credit">Фортепиано — <a href="https://github.com/Tonejs/audio/tree/master/salamander" target="_blank" rel="noopener">Salamander Grand Piano</a>,
-    Alexander Holm · <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>.
-    Высота, громкость и затухание адаптированы для тренажёра.</p>
+  <footer class="lesson-toolbar">
+      <div class="buttons"><button class="control" id="skip-preview" type="button" hidden>К разбору</button><button class="control" type="button" id="restart" aria-label="В начало" title="В начало" hidden>↺</button><button class="control primary" type="button" id="play">Начать</button></div>
+    <button class="control" id="settings-toggle" type="button" aria-expanded="false" aria-controls="settings-panel">Настройки</button>
+    <button class="control" id="fullscreen" type="button">На весь экран</button>
+      <div class="metrics"><span>Темп <strong id="tempo">46 BPM</strong></span><span id="hit-count">Точно <strong id="hits">0</strong></span><span id="error-count">Ошибки <strong id="errors">0</strong></span></div>
+
+    <div class="rhythm-tools" id="rhythm-tools" hidden>
+      <span id="beat-count" aria-label="Удары метронома">Пауза</span>
+    </div>
+    <p id="feedback" role="status">Нажмите «Начать», чтобы запустить упражнение.</p>
+  </footer>
 </main>
 </div>
 </div>
@@ -498,7 +548,7 @@ function reset() {
   el.tempo.textContent = Math.round(lessons[level][2] * speedMultiplier) + ' BPM';
   el.melody.hidden = level !== 2;
   el.phase.hidden = true;
-  el['rhythm-tools'].hidden = el['rhythm-legend'].hidden = level !== 1;
+  el['rhythm-tools'].hidden = el['rhythm-legend'].hidden = el['rhythm-settings'].hidden = level !== 1;
   el['beat-count'].textContent = 'Пауза';
   el['skip-preview'].hidden = true;
   el.restart.hidden = true;
@@ -1339,7 +1389,20 @@ document.addEventListener('fullscreenchange',() => {
   const active = mode === 'playing' ? soundingEvent(clock()) : activeGuide;
   updateNotation(active,Boolean(active));
 });
+function setSettingsOpen(open) {
+  el['settings-panel'].hidden = !open;
+  el['settings-toggle'].setAttribute('aria-expanded',open);
+  if (open) el['settings-close'].focus();
+  else el['settings-toggle'].focus();
+}
+el['settings-toggle'].addEventListener('click',() => setSettingsOpen(el['settings-panel'].hidden));
+el['settings-close'].addEventListener('click',() => setSettingsOpen(false));
 window.addEventListener('keydown',event => {
+  if (event.code === 'Escape' && !el['settings-panel'].hidden) {
+    event.preventDefault();
+    setSettingsOpen(false);
+    return;
+  }
   if (event.repeat || event.metaKey || event.ctrlKey || event.altKey || event.target.tagName === 'SELECT') return;
   if (codes[event.code] !== undefined) {
     event.preventDefault();
